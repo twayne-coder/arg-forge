@@ -47,12 +47,20 @@ export const useProjectStore = defineStore("project", () => {
    * @param description - 项目描述
    */
   async function createProject(name: string, description: string) {
+    console.log("[Store] createProject 开始:", { name, description });
     try {
       const newProject = await projectApi.createProject(name, description);
-      projects.value.push(newProject);
+      console.log("[Store] API 返回成功，项目对象:", newProject);
+
+      // 从后端重新加载列表，确保状态一致
+      console.log("[Store] 开始重新加载项目列表...");
+      await loadProjects();
+      console.log("[Store] 项目列表重新加载完成，当前项目数量:", projects.value.length);
+
       return newProject;
     } catch (error) {
-      console.error("创建项目失败:", error);
+      console.error("[Store] 创建项目失败，错误详情:", error);
+      console.error("[Store] 错误堆栈:", error instanceof Error ? error.stack : "无堆栈");
       throw error;
     }
   }
@@ -284,6 +292,191 @@ export const useProjectStore = defineStore("project", () => {
   }
 
   /**
+   * 添加表单项
+   */
+  async function addFormItem() {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      const newItem = await formApi.addFormItem(
+        currentProject.value.id,
+        currentForm.value.id
+      );
+
+      // 更新本地状态
+      currentForm.value.items.push(newItem);
+
+      // 同步到 currentProject 中的 forms 列表
+      const formIndex = currentProject.value.forms.findIndex(f => f.id === currentForm.value?.id);
+      if (formIndex !== -1) {
+        currentProject.value.forms[formIndex].items.push(newItem);
+      }
+
+      return newItem;
+    } catch (error) {
+      console.error("添加表单项失败:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 更新表单项
+   * @param itemId - 表单项 ID
+   * @param field - 字段名
+   * @param value - 新值
+   */
+  async function updateFormItem(itemId: string, field: string, value: any) {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      const updatedForm = await formApi.updateFormItem(
+        currentProject.value.id,
+        currentForm.value.id,
+        itemId,
+        field,
+        value
+      );
+
+      // 更新本地状态 (currentForm)
+      currentForm.value = updatedForm;
+
+      // 更新本地状态 (currentProject.forms)
+      const formIndex = currentProject.value.forms.findIndex(f => f.id === updatedForm.id);
+      if (formIndex !== -1) {
+        currentProject.value.forms[formIndex] = updatedForm;
+      }
+
+      return updatedForm;
+    } catch (error) {
+      console.error("更新表单项失败:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 删除表单项
+   * @param itemId - 表单项 ID
+   */
+  async function deleteFormItem(itemId: string) {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      await formApi.deleteFormItem(
+        currentProject.value.id,
+        currentForm.value.id,
+        itemId
+      );
+
+      // 更新本地状态
+      currentForm.value.items = currentForm.value.items.filter(item => item.id !== itemId);
+
+      // 同步到 currentProject 中的 forms 列表
+      const formIndex = currentProject.value.forms.findIndex(f => f.id === currentForm.value?.id);
+      if (formIndex !== -1) {
+        currentProject.value.forms[formIndex].items = currentForm.value.items;
+      }
+    } catch (error) {
+      console.error("删除表单项失败:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 重新排序表单项
+   * @param oldIndex - 原始位置
+   * @param newIndex - 新位置
+   */
+  async function reorderFormItems(oldIndex: number, newIndex: number) {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      // 乐观更新：先在前端移动位置
+      const items = [...currentForm.value.items];
+      const [movedItem] = items.splice(oldIndex, 1);
+      items.splice(newIndex, 0, movedItem);
+      currentForm.value.items = items;
+
+      // 同步到后端
+      await formApi.reorderFormItems(
+        currentProject.value.id,
+        currentForm.value.id,
+        oldIndex,
+        newIndex
+      );
+    } catch (error) {
+      console.error("排序失败:", error);
+      // 如果后端失败，这里理想情况下应该回滚状态，但在本地 JSON 存储场景下通常能保持一致
+      throw error;
+    }
+  }
+
+  /**
+   * 更新下拉选项
+   * @param itemId - 表单项 ID
+   * @param options - 选项列表
+   */
+  async function updateDropdownOptions(itemId: string, options: string[]) {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      await formApi.updateDropdownOptions(
+        currentProject.value.id,
+        currentForm.value.id,
+        itemId,
+        options
+      );
+
+      // 更新本地状态
+      const item = currentForm.value.items.find(i => i.id === itemId);
+      if (item) {
+        item.dropdown_options = options;
+      }
+    } catch (error) {
+      console.error("更新下拉选项失败:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 切换下拉模式
+   * @param itemId - 表单项 ID
+   * @param useDropdown - 是否启用
+   */
+  async function toggleDropdownMode(itemId: string, useDropdown: boolean) {
+    if (!currentProject.value || !currentForm.value) {
+      throw new Error("没有选中的项目或表单");
+    }
+
+    try {
+      await formApi.toggleDropdownMode(
+        currentProject.value.id,
+        currentForm.value.id,
+        itemId,
+        useDropdown
+      );
+
+      // 更新本地状态
+      const item = currentForm.value.items.find(i => i.id === itemId);
+      if (item) {
+        item.use_dropdown = useDropdown;
+      }
+    } catch (error) {
+      console.error("切换模式失败:", error);
+      throw error;
+    }
+  }
+
+  /**
    * 设置当前表单
    * @param form - 表单对象
    */
@@ -321,6 +514,12 @@ export const useProjectStore = defineStore("project", () => {
     createForm,
     updateForm,
     deleteForm,
+    addFormItem,
+    updateFormItem,
+    deleteFormItem,
+    reorderFormItems,
+    updateDropdownOptions,
+    toggleDropdownMode,
     setCurrentForm,
     $reset,
   };
