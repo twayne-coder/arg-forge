@@ -21,12 +21,18 @@ impl StorageService {
     /// # 返回
     /// 存储服务实例
     pub fn new(data_dir: PathBuf) -> Result<Self> {
+        println!("[StorageService] ===== 初始化存储服务 =====");
+        println!("[StorageService] 数据目录: {:?}", data_dir);
+
         // 确保数据目录存在
         fs::create_dir_all(&data_dir)?;
+        println!("[StorageService] ✅ 数据目录已创建/已存在");
 
         // 确保项目子目录存在
         let projects_dir = data_dir.join("projects");
+        println!("[StorageService] 项目目录: {:?}", projects_dir);
         fs::create_dir_all(&projects_dir)?;
+        println!("[StorageService] ✅ 项目目录已创建/已存在");
 
         Ok(Self { data_dir })
     }
@@ -37,9 +43,11 @@ impl StorageService {
     /// # 返回
     /// 项目文件的完整路径
     fn get_project_path(&self, project_id: &str) -> PathBuf {
-        self.data_dir
+        let path = self.data_dir
             .join("projects")
-            .join(format!("{}.json", project_id))
+            .join(format!("{}.json", project_id));
+        println!("[StorageService] get_project_path: {:?}", path);
+        path
     }
 
     /// 获取备份文件路径
@@ -62,20 +70,43 @@ impl StorageService {
     /// 2. 将项目序列化为 JSON
     /// 3. 写入文件
     pub fn save_project(&self, project: &Project) -> Result<()> {
+        println!("[StorageService] ===== save_project 开始 =====");
+        println!("[StorageService] 项目ID: {}", project.id);
+        println!("[StorageService] 项目名称: {}", project.name);
+
         let file_path = self.get_project_path(&project.id);
         let backup_path = self.get_backup_path(&project.id);
 
+        println!("[StorageService] 目标文件: {:?}", file_path);
+        println!("[StorageService] 备份文件: {:?}", backup_path);
+
         // 如果文件已存在，创建备份
         if file_path.exists() {
+            println!("[StorageService] 文件已存在，创建备份...");
             fs::copy(&file_path, &backup_path)?;
+            println!("[StorageService] ✅ 备份创建成功");
+        } else {
+            println!("[StorageService] 文件不存在，跳过备份");
         }
 
         // 序列化为格式化的 JSON
+        println!("[StorageService] 开始序列化项目...");
         let json = serde_json::to_string_pretty(project)?;
+        println!("[StorageService] ✅ 序列化成功，JSON 长度: {} 字节", json.len());
 
         // 写入文件
+        println!("[StorageService] 开始写入文件...");
         fs::write(&file_path, json)?;
+        println!("[StorageService] ✅ 文件写入成功");
 
+        // 验证文件存在
+        if file_path.exists() {
+            println!("[StorageService] ✅ 文件存在性验证通过");
+        } else {
+            println!("[StorageService] ⚠️  警告：文件写入成功但不存在！");
+        }
+
+        println!("[StorageService] ===== save_project 完成 =====");
         Ok(())
     }
 
@@ -88,19 +119,27 @@ impl StorageService {
     /// # 错误
     /// 如果文件不存在或解析失败，返回错误
     pub fn load_project(&self, project_id: &str) -> Result<Project> {
+        println!("[StorageService] ===== load_project 开始 =====");
+        println!("[StorageService] 项目ID: {}", project_id);
+
         let file_path = self.get_project_path(project_id);
+        println!("[StorageService] 文件路径: {:?}", file_path);
 
         // 检查文件是否存在
         if !file_path.exists() {
+            println!("[StorageService] ❌ 文件不存在");
             return Err(AppError::ProjectNotFound(project_id.to_string()));
         }
 
-        // 读取文件内容
+        println!("[StorageService] 文件存在，开始读取...");
         let content = fs::read_to_string(&file_path)?;
+        println!("[StorageService] ✅ 读取成功，内容长度: {} 字节", content.len());
 
-        // 反序列化
+        println!("[StorageService] 开始反序列化...");
         let project = serde_json::from_str(&content)?;
+        println!("[StorageService] ✅ 反序列化成功");
 
+        println!("[StorageService] ===== load_project 完成 =====");
         Ok(project)
     }
 

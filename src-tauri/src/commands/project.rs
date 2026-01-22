@@ -1,12 +1,19 @@
 use crate::models::Project;
 use crate::services::StorageService;
 use tauri::State;
+use serde::Deserialize;
+
+/// 项目创建配置
+#[derive(Deserialize)]
+pub struct CreateProjectConfig {
+    pub name: String,
+    pub description: String,
+}
 
 /// 创建新项目
 ///
 /// # 参数
-/// * `name` - 项目名称
-/// * `description` - 项目描述
+/// * `config` - 项目配置 (名称和描述)
 /// * `storage` - 存储服务实例（由 Tauri 管理）
 ///
 /// # 返回
@@ -15,24 +22,58 @@ use tauri::State;
 /// # 示例
 /// ```javascript
 /// const project = await invoke('create_project', {
-///   name: '机器学习实验',
-///   description: '深度学习模型训练配置'
+///   config: {
+///     name: '机器学习实验',
+///     description: '深度学习模型训练配置'
+///   }
 /// });
 /// ```
 #[tauri::command]
 pub async fn create_project(
-    name: String,
-    description: String,
+    config: CreateProjectConfig,
     storage: State<'_, StorageService>,
 ) -> Result<Project, String> {
+    println!("[Rust] ===== create_project 被调用 =====");
+    println!("[Rust] 接收到的 config: name={}, description={}", config.name, config.description);
+
+    // 验证输入
+    if config.name.trim().is_empty() {
+        let err = "项目名称不能为空".to_string();
+        println!("[Rust] 错误: {}", err);
+        return Err(err);
+    }
+
     // 创建新项目实例
-    let project = Project::new(name, description);
+    println!("[Rust] 开始创建 Project 实例...");
+    let project = Project::new(config.name.clone(), config.description.clone());
+    let project_id = project.id.clone();
+
+    println!("[Rust] 项目创建成功: id={}, name={}", project_id, project.name);
+    println!("[Rust] 项目序列化数据: {}", serde_json::to_string(&project).unwrap_or_else(|_| "序列化失败".to_string()));
 
     // 保存到文件
+    println!("[Rust] 开始保存项目到文件...");
     storage
         .save_project(&project)
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            println!("[Rust] ❌ 保存项目失败: {}", e);
+            println!("[Rust] 错误类型: {:?}", std::any::type_name_of_val(&e));
+            e.to_string()
+        })?;
 
+    println!("[Rust] ✅ 项目保存成功: {}", project_id);
+
+    // 验证文件是否真的存在
+    let exists = storage.project_exists(&project_id);
+    println!("[Rust] 文件存在性检查: {}", if exists { "✅ 文件存在" } else { "❌ 文件不存在" });
+
+    if !exists {
+        let err = format!("项目保存成功，但文件未找到: {}", project_id);
+        println!("[Rust] ⚠️  {}", err);
+        return Err(err);
+    }
+
+    println!("[Rust] ===== create_project 执行完成 =====");
     Ok(project)
 }
 
@@ -53,9 +94,18 @@ pub async fn create_project(
 pub async fn list_projects(
     storage: State<'_, StorageService>,
 ) -> Result<Vec<Project>, String> {
-    storage
+    println!("[Rust] 列出所有项目");
+
+    let projects = storage
         .list_projects()
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    println!("[Rust] 找到 {} 个项目", projects.len());
+    for p in &projects {
+        println!("[Rust]   - {}: {}", p.id, p.name);
+    }
+
+    Ok(projects)
 }
 
 /// 获取单个项目详情

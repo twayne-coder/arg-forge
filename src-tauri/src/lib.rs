@@ -9,26 +9,7 @@ pub use error::{AppError, Result};
 pub use models::{Form, FormItem, ParamStyle, Project};
 pub use services::{CommandService, StorageService};
 
-use std::path::PathBuf;
 use tauri::Manager;
-
-/// 获取应用数据目录
-/// 跨平台支持 Windows、macOS、Linux
-fn get_data_dir() -> PathBuf {
-    // 获取 Tauri 的应用数据目录
-    // Windows: %APPDATA%/arg-forge/
-    // macOS: ~/Library/Application Support/arg-forge/
-    // Linux: ~/.config/arg-forge/
-    let app = tauri::Builder::default()
-        .build(tauri::generate_context!())
-        .expect("无法初始化 Tauri 应用")
-        .app_handle()
-        .path()
-        .app_data_dir()
-        .expect("无法获取应用数据目录");
-
-    app
-}
 
 /// 应用入口点
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -38,16 +19,23 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // 设置应用状态
         .setup(|app| {
+            println!("[App] ===== Tauri 应用初始化开始 =====");
+
             // 获取应用数据目录
             let data_dir = app.path().app_data_dir().expect("无法获取数据目录");
+            println!("[App] 应用数据目录: {:?}", data_dir);
 
             // 初始化存储服务
+            println!("[App] 开始初始化存储服务...");
             let storage = StorageService::new(data_dir)
                 .expect("无法初始化存储服务");
+            println!("[App] ✅ 存储服务初始化成功");
 
             // 将存储服务管理到全局状态中
             app.manage(storage);
+            println!("[App] ✅ 存储服务已注册到全局状态");
 
+            println!("[App] ===== Tauri 应用初始化完成 =====");
             Ok(())
         })
         // 注册所有 Tauri Commands
