@@ -41,6 +41,9 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.27(typescript@5.6.3)
+      vue-router:
+        specifier: ^4.6.4
+        version: 4.6.4(vue@3.5.27(typescript@5.6.3))
     devDependencies:
       '@tauri-apps/cli':
         specifier: ^2
@@ -63,9 +66,6 @@ importers:
       tailwindcss:
         specifier: ^3.4.19
         version: 3.4.19
-      tauri-specta:
-        specifier: ^0.0.2
-        version: 0.0.2(@tauri-apps/api@2.9.1)
       typescript:
         specifier: ~5.6.2
         version: 5.6.3
@@ -803,6 +803,9 @@ packages:
 
   '@vue/compiler-vue2@2.7.16':
     resolution: {integrity: sha512-qYC3Psj9S/mfu9uVi5WvNZIzq+xnXMhOwbTFKKDD7b1lhpnn71jXSFdTQ+WsIEk0ONCd7VV2IMm7ONl6tbQ86A==}
+
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
 
   '@vue/devtools-api@7.7.9':
     resolution: {integrity: sha512-kIE8wvwlcZ6TJTbNeU2HQNtaxLx3a84aotTITUuL/4bzfPxzajGBOoqjMhwZJ8L9qFYDU/lAYMEEm11dnZOD6g==}
@@ -2404,11 +2407,6 @@ packages:
   tailwindcss@4.1.18:
     resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
 
-  tauri-specta@0.0.2:
-    resolution: {integrity: sha512-ZgbJ/dnqHPn7Jsux7dMx7L8zMsG05Mt6rxR+ZWuSvvfWs5t+dPdHKc/4QEO3gXdQ5h1cJDwGUaNsEFoECbYkTA==}
-    peerDependencies:
-      '@tauri-apps/api': ^1.1.0
-
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
     engines: {node: '>=0.8'}
@@ -2559,6 +2557,11 @@ packages:
   vue-metamorph@3.3.3:
     resolution: {integrity: sha512-NPeDg2/ZL4lDJsC/PjEfFq+Ln3Rr7cX86AQo4bI5V6ziUTZOMY93HyIwKHW37BrIf4YB97llrGtvM+eMhwr1jw==}
     hasBin: true
+
+  vue-router@4.6.4:
+    resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
+    peerDependencies:
+      vue: ^3.5.0
 
   vue-tsc@2.2.12:
     resolution: {integrity: sha512-P7OP77b2h/Pmk+lZdJ0YWs+5tJ6J2+uOQPo7tlBnY44QqQSPYvS0qVT4wqDJgwrZaLe47etJLLQRFia71GYITw==}
@@ -3289,6 +3292,8 @@ snapshots:
     dependencies:
       de-indent: 1.0.2
       he: 1.2.0
+
+  '@vue/devtools-api@6.6.4': {}
 
   '@vue/devtools-api@7.7.9':
     dependencies:
@@ -4946,10 +4951,6 @@ snapshots:
 
   tailwindcss@4.1.18: {}
 
-  tauri-specta@0.0.2(@tauri-apps/api@2.9.1):
-    dependencies:
-      '@tauri-apps/api': 2.9.1
-
   thenify-all@1.6.0:
     dependencies:
       thenify: 3.3.1
@@ -5079,6 +5080,11 @@ snapshots:
     transitivePeerDependencies:
       - eslint
       - supports-color
+
+  vue-router@4.6.4(vue@3.5.27(typescript@5.6.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.27(typescript@5.6.3)
 
   vue-tsc@2.2.12(typescript@5.6.3):
     dependencies:

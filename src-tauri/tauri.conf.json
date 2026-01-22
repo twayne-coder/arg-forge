@@ -12,16 +12,20 @@
   "app": {
     "windows": [
       {
-        "title": "arg-forge",
+        "title": "ArgForge",
         "width": 1200,
         "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
         "decorations": false,
         "transparent": false,
-        "title": "ArgForge"
+        "resizable": true,
+        "acceptFirstMouse": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "dangerousDisableAssetCspModification": true
     }
   },
   "bundle": {
