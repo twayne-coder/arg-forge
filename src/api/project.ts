@@ -16,7 +16,20 @@ export async function createProject(
   name: string,
   description: string
 ): Promise<Project> {
-  return await invoke("create_project", { name, description });
+  console.log("[API] createProject 被调用:", { name, description });
+  const payload = { config: { name, description } };
+  console.log("[API] 准备发送的 payload:", JSON.stringify(payload));
+
+  try {
+    const result = await invoke("create_project", payload);
+    console.log("[API] create_project 调用成功，返回结果:", result);
+    return result;
+  } catch (error) {
+    console.error("[API] create_project 调用失败，错误详情:", error);
+    console.error("[API] 错误类型:", typeof error);
+    console.error("[API] 错误字符串:", String(error));
+    throw error;
+  }
 }
 
 /**
@@ -33,7 +46,7 @@ export async function listProjects(): Promise<Project[]> {
  * @returns 项目对象
  */
 export async function getProject(projectId: string): Promise<Project> {
-  return await invoke("get_project", { projectId });
+  return await invoke("get_project", { project_id: projectId });
 }
 
 /**
@@ -48,7 +61,7 @@ export async function updateProject(
   name: string,
   description: string
 ): Promise<Project> {
-  return await invoke("update_project", { projectId, name, description });
+  return await invoke("update_project", { project_id: projectId, name, description });
 }
 
 /**
@@ -56,7 +69,7 @@ export async function updateProject(
  * @param projectId - 项目 ID
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  await invoke("delete_project", { projectId });
+  await invoke("delete_project", { project_id: projectId });
 }
 
 /**
@@ -65,5 +78,5 @@ export async function deleteProject(projectId: string): Promise<void> {
  * @returns 新创建的项目对象
  */
 export async function duplicateProject(projectId: string): Promise<Project> {
-  return await invoke("duplicate_project", { projectId });
+  return await invoke("duplicate_project", { project_id: projectId });
 }
