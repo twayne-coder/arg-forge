@@ -3,68 +3,107 @@
  * 处理浏览器环境和 Tauri 环境的差异
  */
 
-declare global {
-  interface Window {
-    __TAURI__?: unknown;
-  }
-
-  interface ImportMeta {
-    env?: {
-      MODE: string;
-    };
-  }
-}
-
-let invokeCache: ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null = null;
+import { invoke as tauriInvoke } from '@tauri-apps/api/core';
+import type { Project } from '@/types/bindings';
 
 /**
- * 安全的 invoke 函数
- * 只在 Tauri 环境中调用，浏览器环境返回 mock 数据
+ * 类型安全的 Tauri 命令调用
+ * @template T - 返回值类型
+ * @param cmd - 命令名称
+ * @param args - 命令参数
+ * @returns Promise<T> - 命令执行结果
+ *
+ * @example
+ * ```typescript
+ * const projects = await invoke<Project[]>('list_projects');
+ * const project = await invoke<Project>('create_project', {
+ *   config: { name: 'My Project', description: 'Description' }
+ * });
+ * ```
  */
 export async function invoke<T = unknown>(
   cmd: string,
   args?: Record<string, unknown>
 ): Promise<T> {
-  // 检查是否在 Tauri 环境中
-  const isTauri = typeof window !== 'undefined' && window.__TAURI__ !== undefined;
+  console.log(`[invoke] 命令: ${cmd}`, args);
 
-  if (!isTauri) {
-    // 浏览器环境：返回 mock 数据或抛出错误
-    console.warn(`[Mock] invoke "${cmd}" called in browser environment`, args);
+  // 检查是否在 Tauri 环境
+  if (!isTauriApp()) {
+    console.error(`[invoke] ❌ 不在 Tauri 环境中`);
+    console.error(`[invoke] 当前 location: ${window.location.href}`);
 
-    // 对于开发环境，可以返回一些 mock 数据
+    // 浏览器环境：返回 Mock 数据（仅开发模式）
     if (import.meta.env?.MODE === 'development') {
-      // 根据不同的命令返回不同的 mock 数据
-      if (cmd === 'list_projects') {
-        return [] as T;
-      }
-      if (cmd === 'create_project') {
-        return {
-          id: crypto.randomUUID(),
-          name: args?.name,
-          description: args?.description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          forms: [],
-        } as T;
-      }
+      return getMockData<T>(cmd, args);
     }
 
-    throw new Error(`Cannot invoke "${cmd}" in browser environment`);
+    throw new Error(`[invoke] 无法在浏览器环境中调用命令 "${cmd}"`);
   }
 
-  // Tauri 环境：动态导入并调用
-  if (!invokeCache) {
-    const { invoke: invokeFn } = await import('@tauri-apps/api/core');
-    invokeCache = invokeFn;
+  // Tauri 环境：调用真实命令
+  try {
+    console.log(`[invoke] → 调用 Rust 后端命令...`);
+    const result = await tauriInvoke<T>(cmd, args);
+    console.log(`[invoke] ✅ 命令执行成功`);
+    return result;
+  } catch (error) {
+    console.error(`[invoke] ❌ 命令执行失败:`, error);
+    throw error;
   }
-
-  return invokeCache<T>(cmd, args);
 }
 
 /**
  * 检查是否在 Tauri 环境中
+ * 安全的检测方法，不会抛出异常
  */
 export function isTauriApp(): boolean {
-  return typeof window !== 'undefined' && window.__TAURI__ !== undefined;
+  try {
+    // 检查全局对象是否存在
+    return typeof window !== 'undefined' && (
+      '__TAURI__' in window ||
+      '__TAURI_INTERNALS__' in window ||
+      // 检查 Tauri 的特有属性
+      !!(window as any).__TAURI_INTERNALS__
+    );
+  } catch {
+    // 如果检测过程出错，返回 false
+    return false;
+  }
+}
+
+/**
+ * Mock 数据生成器（开发环境）
+ * @template T - 返回值类型
+ * @param cmd - 命令名称
+ * @param args - 命令参数
+ * @returns Mock 数据
+ */
+function getMockData<T>(cmd: string, args?: Record<string, unknown>): T {
+  console.warn(`[invoke] ⚠️  使用 Mock 数据（开发模式）`);
+
+  switch (cmd) {
+    case 'list_projects':
+      return [] as T;
+
+    case 'create_project': {
+      const config = args?.config as { name?: string; description?: string } | undefined;
+      return {
+        id: crypto.randomUUID(),
+        name: config?.name || '',
+        description: config?.description || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        forms: [],
+      } as T;
+    }
+
+    case 'get_project':
+    case 'update_project':
+    case 'delete_project':
+    case 'duplicate_project':
+      throw new Error(`[invoke] Mock 暂不支持命令: ${cmd}`);
+
+    default:
+      throw new Error(`[invoke] 未知命令: ${cmd}`);
+  }
 }

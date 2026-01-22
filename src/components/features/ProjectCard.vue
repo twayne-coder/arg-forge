@@ -6,7 +6,7 @@
     <CardHeader>
       <CardTitle class="flex items-center justify-between">
         <span class="truncate">{{ project.name }}</span>
-        <DropdownMenu :project="project" @click.stop />
+        <ProjectCardDropdown :project="project" @click.stop />
       </CardTitle>
       <CardDescription class="line-clamp-2">
         {{ project.description || "暂无描述" }}
@@ -25,7 +25,7 @@
 import type { Project } from "@/types/bindings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderOpenIcon } from "lucide-vue-next";
-import DropdownMenu from "./ProjectCardDropdown.vue";
+import ProjectCardDropdown from "./ProjectCardDropdown.vue";
 
 /** 项目对象 */
 const props = defineProps<{

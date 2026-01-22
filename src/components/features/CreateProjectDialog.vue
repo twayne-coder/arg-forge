@@ -108,21 +108,45 @@ watch(() => props.open, (isOpen) => {
 
 /** 处理表单提交 */
 async function handleSubmit() {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value) {
+    console.warn("[Dialog] 表单验证失败，name 为空");
+    return;
+  }
+
+  console.log("[Dialog] ===== 开始创建项目流程 =====");
+  console.log("[Dialog] 表单数据:", JSON.stringify(formData.value));
 
   loading.value = true;
   try {
-    await projectStore.createProject(
+    console.log("[Dialog] 准备调用 store.createProject");
+    const newProject = await projectStore.createProject(
       formData.value.name.trim(),
       formData.value.description.trim()
     );
+
+    console.log("[Dialog] store.createProject 返回成功:", newProject);
+    console.log("[Dialog] ===== 项目创建流程完成 =====");
 
     // 成功后关闭对话框并通知父组件
     emit("update:open", false);
     emit("success");
   } catch (error) {
-    console.error("创建项目失败:", error);
-    // TODO: 显示错误提示
+    console.error("[Dialog] ===== 创建项目失败 =====");
+    console.error("[Dialog] 错误对象:", error);
+    console.error("[Dialog] 错误名称:", error instanceof Error ? error.name : "未知");
+    console.error("[Dialog] 错误消息:", error instanceof Error ? error.message : String(error));
+    console.error("[Dialog] 错误堆栈:", error instanceof Error ? error.stack : "无堆栈");
+
+    // 显示用户友好的错误提示
+    let errorMsg = "未知错误";
+    if (error instanceof Error) {
+      errorMsg = error.message;
+    } else if (typeof error === "string") {
+      errorMsg = error;
+    } else {
+      errorMsg = JSON.stringify(error);
+    }
+    alert(`创建项目失败:\n${errorMsg}\n\n请查看浏览器控制台和后端日志获取详细信息。`);
   } finally {
     loading.value = false;
   }

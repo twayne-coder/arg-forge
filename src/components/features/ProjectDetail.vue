@@ -54,7 +54,7 @@
 
       <!-- 右侧: 表单详情 (70%) -->
       <main class="form-detail-panel flex-1 bg-background">
-        <FormDetailPreview
+        <FormDetailEditor
           v-if="currentForm"
           :form="currentForm"
           @edit="openEditFormDialog"
@@ -104,7 +104,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeftIcon, EditIcon, PlusIcon, FileTextIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import FormListItem from "./FormListItem.vue";
-import FormDetailPreview from "./FormDetailPreview.vue";
+import FormDetailEditor from "./FormDetailEditor.vue";
 import CreateFormDialog from "./CreateFormDialog.vue";
 import EditFormDialog from "./EditFormDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";

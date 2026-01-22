@@ -1,5 +1,5 @@
 <template>
-  <div class="relative" @click.stop>
+  <DropdownMenu>
     <DropdownMenuTrigger>
       <Button
         variant="ghost"
@@ -24,7 +24,7 @@
         删除
       </DropdownMenuItem>
     </DropdownMenuContent>
-  </div>
+  </DropdownMenu>
 </template>
 
 <script setup lang="ts">
