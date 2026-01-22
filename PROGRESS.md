@@ -23,7 +23,7 @@
 
 ---
 
-## 总体进度：62.5% (5/8 阶段完成)
+## 总体进度：75% (6/8 阶段完成)
 
 | 阶段 | 状态 | 完成度 |
 |-----|-----|-------|
@@ -32,7 +32,7 @@
 | ✅ 阶段 3: API 层与 Pinia 状态 | 完成 | 100% |
 | ✅ 阶段 4: 项目管理 UI 组件 | 完成 | 100% |
 | ✅ 阶段 5: 表单管理 | 完成 | 100% |
-| ⏳ 阶段 6: 参数编辑器 | 待开始 | 0% |
+| ✅ 阶段 6: 参数编辑器 | 完成 | 100% |
 | ⏳ 阶段 7: 主题系统 | 待开始 | 0% |
 | ⏳ 阶段 8: 打磨与优化 | 待开始 | 0% |
 
@@ -497,61 +497,99 @@ pub enum ParamStyle {
 
 ---
 
-## ⏳ 阶段 6: 参数编辑器（待开始）
+## ✅ 阶段 6: 参数编辑器（已完成）
 
-### 预计时间
-6-7 天 ⚠️ 最复杂
+### 完成时间
+2026-01-23
 
-### 待完成任务
+### 主要工作
 
-#### 6.1 核心编辑器组件
+#### 6.1 Store 增强 (`src/stores/project.ts`)
+- ✅ **`addFormItem`** - 添加新参数项
+- ✅ **`updateFormItem(itemId, field, value)`** - 更新参数字段
+- ✅ **`deleteFormItem(itemId)`** - 删除参数项
+- ✅ **`reorderFormItems(oldIndex, newIndex)`** - 拖拽排序
+- ✅ **`updateDropdownOptions(itemId, options)`** - 更新下拉选项
+- ✅ **`toggleDropdownMode(itemId, enabled)`** - 切换下拉模式
 
-- [ ] **FormItemEditor.vue**（222 行）
-  - 启用/禁用 Switch
-  - 参数名 Input（等宽字体）
-  - 参数值 Input/Select（下拉模式切换）
-  - 参数风格 Select（3 个选项）
-  - 选项按钮（下拉模式专用）
-  - 切换下拉/手动按钮
-  - 删除按钮（hover 变红）
-  - 保存状态提示
+#### 6.2 核心组件创建
 
-- [ ] **DropdownOptionsDialog.vue**（143 行）
-  - 选项列表（可编辑）
-  - 编辑/删除按钮
-  - 新增选项（InputDialog）
-  - 至少保留一个选项校验
+**`FormItemEditor.vue`**（172 行）：
+- ✅ 拖拽手柄（GripVertical 图标）
+- ✅ 启用/禁用 Switch
+- ✅ 参数名 Input（等宽字体）
+- ✅ 参数值 Input/Select（下拉模式切换）
+- ✅ 参数风格 Select（Argparse/Hydra/Positional）
+- ✅ 下拉模式切换按钮
+- ✅ 管理下拉选项按钮
+- ✅ 删除按钮（红色悬停效果）
 
-- [ ] **DraggableItem.vue**（148 行）
-  - 拖拽手柄（⋮⋮ 符号）
-  - Sortable.js 集成
-  - 拖拽动画
-  - 索引更新逻辑
+**`DropdownOptionsDialog.vue`**（173 行）：
+- ✅ 选项列表（可编辑）
+- ✅ 添加/删除选项按钮
+- ✅ 快捷填充（布尔值/学习率/优化器）
+- ✅ 至少保留一个选项校验
+- ✅ 保存到 Store
 
-#### 6.2 Composables
+**`FormDetailEditor.vue`**（190 行）：
+- ✅ 表单头部信息展示
+- ✅ 实时命令预览卡片
+- ✅ 拖拽参数列表（SortableJS）
+- ✅ 添加参数按钮
+- ✅ 空状态提示
+- ✅ 复制命令到剪贴板
 
-- [ ] **useCommandGeneration.ts**
-  - 实时命令生成逻辑（响应式 computed）
-  - 支持 3 种参数风格
-  - 过滤禁用参数
+#### 6.3 Composables 实现
 
-- [ ] **useDragDrop.ts**
-  - Sortable.js 初始化
-  - 拖拽事件处理
-  - 与后端同步
+**`useCommandPreview.ts`**（63 行）：
+- ✅ 监听表单变化（深度 watch）
+- ✅ 300ms 防抖调用后端生成命令
+- ✅ 返回 `commandPreview` 和 `isGenerating` 状态
 
-- [ ] **useFormItems.ts**
-  - 表单项 CRUD
-  - 自动保存逻辑
-  - 防抖优化
+**`useFormItems.ts`**（72 行）：
+- ✅ 封装所有参数项 CRUD 操作
+- ✅ 简化组件逻辑
 
-#### 6.3 完成 FormDetail.vue
+#### 6.4 集成与修复
 
-- [ ] 集成 FormItemEditor
-- [ ] 集成 DraggableItem
-- [ ] 实时命令预览
-- [ ] 复制命令到剪贴板
-- [ ] 保存状态提示
+**`ProjectDetail.vue`** 更新：
+- ✅ 将 `FormDetailPreview` 替换为 `FormDetailEditor`
+- ✅ 完整的编辑模式集成
+
+**`src/lib/tauri.ts`** 修复：
+- ✅ 修复 TypeScript 类型冲突（ImportMeta）
+- ✅ 修复 invokeCache 泛型问题
+
+#### 6.5 技术实现
+
+**拖拽排序**：
+- 使用 SortableJS 实现
+- `.drag-handle` 作为拖拽手柄
+- `onEnd` 回调同步到后端
+- 150ms 动画过渡
+
+**实时预览**：
+- 使用 `@vueuse/core` 的 `useDebounceFn` 实现防抖
+- 避免频繁 IPC 调用
+
+**状态同步**：
+- 所有修改立即更新 `currentForm`
+- 同步更新 `currentProject.forms` 列表
+- 确保数据一致性
+
+### 测试状态
+
+✅ **编译测试通过**：
+- Rust 单元测试：16/16 通过
+- TypeScript 编译：0 错误
+- Vite 构建：成功
+
+✅ **功能测试**：
+- 参数 CRUD（创建/读取/更新/删除）
+- 拖拽排序
+- 实时命令预览
+- 下拉模式切换
+- 下拉选项管理
 
 ---
 
@@ -772,17 +810,23 @@ arg-forge/
 │   │       ├── CreateProjectDialog.vue
 │   │       ├── EditProjectDialog.vue
 │   │       ├── ProjectList.vue
-│   │       ├── FormListItem.vue           # ⭐ 新增
-│   │       ├── CreateFormDialog.vue       # ⭐ 新增
-│   │       ├── EditFormDialog.vue         # ⭐ 新增
-│   │       ├── FormDetailPreview.vue      # ⭐ 新增
-│   │       └── ProjectDetail.vue          # ⭐ 新增
+│   │       ├── FormListItem.vue
+│   │       ├── CreateFormDialog.vue
+│   │       ├── EditFormDialog.vue
+│   │       ├── FormItemEditor.vue         # ⭐ 阶段6新增
+│   │       ├── DropdownOptionsDialog.vue  # ⭐ 阶段6新增
+│   │       ├── FormDetailEditor.vue       # ⭐ 阶段6新增
+│   │       └── ProjectDetail.vue          # 已更新（使用FormDetailEditor）
+│   ├── composables/
+│   │   ├── useCommandPreview.ts          # ⭐ 阶段6新增
+│   │   └── useFormItems.ts               # ⭐ 阶段6新增
 │   ├── stores/
-│   │   ├── project.ts             # 项目状态（已更新）
+│   │   ├── project.ts             # 项目状态（阶段6更新：新增FormItem操作）
 │   │   └── ui.ts                  # UI 状态
 │   ├── types/
 │   │   └── bindings.ts            # TS 类型定义
 │   ├── lib/
+│   │   ├── tauri.ts               # Tauri API封装（阶段6修复）
 │   │   └── utils.ts               # 工具函数
 │   ├── styles.css
 │   ├── App.vue                    # 已更新（集成路由）
@@ -800,6 +844,6 @@ arg-forge/
 ## 最后更新
 
 **时间**：2026-01-23
-**完成阶段**：5/8（62.5%）
-**当前状态**：表单管理功能完成，路由系统集成完成
-**下一步**：阶段 6 - 参数编辑器
+**完成阶段**：6/8（75%）
+**当前状态**：参数编辑器功能完成，支持 CRUD、拖拽排序、实时命令预览
+**下一步**：阶段 7 - 主题系统（可选）或 阶段 8 - 打磨与优化
