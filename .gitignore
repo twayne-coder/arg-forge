@@ -1,0 +1,93 @@
+# ========== Logs ==========
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ========== Dependencies ==========
+node_modules
+.pnp
+.pnp.js
+
+# ========== Build outputs ==========
+dist
+dist-ssr
+*.local
+
+# ========== Tauri specific ==========
+src-tauri/target
+src-tauri/Cargo.lock
+
+# Tauri configuration (keep examples, ignore generated)
+# src-tauri/tauri.conf.json
+src-tauri/gen
+src-tauri/WixTools
+
+# ========== Rust/Cargo ==========
+**/*.rs.bk
+.cargo/
+Cargo.lock
+
+# ========== Environment & Secrets ==========
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+
+# ========== Editor directories & files ==========
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea
+.vs/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*~
+
+# ========== TypeScript & Vue ==========
+*.tsbuildinfo
+vue-tsc.openapi.cache
+.vite
+
+# ========== OS specific ==========
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========== Claude Code specific ==========
+.claude/
+nul
