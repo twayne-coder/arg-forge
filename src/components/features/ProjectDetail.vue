@@ -260,13 +260,13 @@ async function handleProjectUpdated() {
 
 /* 分割器在布局中只占 1px（不影响 flex 计算） */
 :deep(.splitpanes__splitter) {
-  width: 1px !important;
-  min-width: 1px !important;
-  background-color: hsl(var(--border));
+  width: 0 !important;
+  min-width: 0 !important;
+  border-left: 1px solid hsl(var(--border));
   position: relative;
   cursor: default;
   z-index: 10;
-  transition: background-color 0.2s ease;
+  transition: border-left-color 0.2s ease;
 }
 
 /* 透明伪元素扩展点击热区：左右各 4px，总共 9px */
@@ -301,16 +301,18 @@ async function handleProjectUpdated() {
 
 /* 悬浮效果：背景高亮 + 指示器显示 */
 :deep(.splitpanes__splitter:hover) {
-  background-color: hsl(var(--primary) / 0.3);
+  border-left-color: hsl(var(--primary));
 }
 
 :deep(.splitpanes__splitter:hover)::after {
-  opacity: 0.8;
+  opacity: 1;
+  width: 6px;
+  height: 48px;
 }
 
 /* 拖拽状态（需要 JS 配合添加 dragging 类） */
 :deep(.splitpanes__splitter.dragging) {
-  background-color: hsl(var(--primary) / 0.5);
+  border-left-color: hsl(var(--primary) / 0.5);
 }
 
 :deep(.splitpanes__splitter.dragging)::after {
