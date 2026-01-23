@@ -4,7 +4,6 @@
  */
 
 import { invoke as tauriInvoke } from '@tauri-apps/api/core';
-import type { Project } from '@/types/bindings';
 
 /**
  * 类型安全的 Tauri 命令调用
