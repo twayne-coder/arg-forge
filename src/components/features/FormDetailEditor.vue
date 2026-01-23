@@ -87,7 +87,7 @@
 
         <div class="px-4 pt-4 pb-2 space-y-3">
           <!-- 拖拽区域 -->
-          <div ref="listRef" class="space-y-3">
+          <div ref="listRef" class="space-y-3 pb-4">
             <FormItemEditor
               v-for="item in form.items"
               :key="item.id"
