@@ -2,9 +2,9 @@
   <div
     :class="[
       'group flex items-center gap-3 rounded-lg border bg-card p-3 transition-all',
-      'hover:border-primary/50 hover:shadow-sm',
+      'hover:border-primary hover:shadow-sm',
       !item.enabled && 'opacity-50',
-      item.item_type === 'Command' && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900'
+      item.item_type === 'Command' && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
     ]"
   >
     <!-- 拖拽手柄 -->
