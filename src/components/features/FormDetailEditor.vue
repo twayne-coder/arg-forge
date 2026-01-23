@@ -192,6 +192,8 @@ onMounted(() => {
     handle: ".drag-handle",
     animation: 150,
     ghostClass: "opacity-50",
+    scroll: true,
+    bubbleScroll: true,
     onEnd: async (evt) => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
