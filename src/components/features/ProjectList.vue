@@ -6,10 +6,20 @@
         <h1 class="text-2xl font-semibold">ArgForge</h1>
         <p class="text-sm text-muted-foreground">可视化命令配置工具</p>
       </div>
-      <Button @click="showCreateDialog = true">
-        <PlusIcon class="h-4 w-4 mr-2" />
-        新建项目
-      </Button>
+      <div class="flex items-center gap-2">
+        <Button
+          variant="outline"
+          @click="toggleSort"
+          class="min-w-[140px]"
+        >
+          <component :is="sortDirectionIcon" class="h-4 w-4 mr-2" />
+          {{ sortButtonText }}
+        </Button>
+        <Button @click="showCreateDialog = true">
+          <PlusIcon class="h-4 w-4 mr-2" />
+          新建项目
+        </Button>
+      </div>
     </div>
 
     <!-- 主内容区 -->
@@ -67,7 +77,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusIcon, FolderOpenIcon } from "lucide-vue-next";
+import { PlusIcon, FolderOpenIcon, ArrowUpDownIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import ProjectCard from "./ProjectCard.vue";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
@@ -93,10 +103,26 @@ const editingProject = ref<Project | null>(null);
 const isLoading = ref(false);
 
 /** 项目列表 */
-const projects = computed(() => projectStore.projects);
+const projects = computed(() => projectStore.sortedProjects);
 
 /** 是否有项目 */
 const hasProjects = computed(() => projectStore.hasProjects);
+
+/** 排序配置 */
+const sortConfig = computed(() => projectStore.sortConfig);
+
+/** 排序按钮文本 */
+const sortButtonText = computed(() => {
+  const { sortBy, order } = sortConfig.value;
+  const field = sortBy === 'created_at' ? '创建时间' : '修改时间';
+  const direction = order === 'asc' ? '正序' : '降序';
+  return `${field}${direction}`;
+});
+
+/** 排序方向图标 */
+const sortDirectionIcon = computed(() => {
+  return sortConfig.value.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+});
 
 /** 初始化 */
 onMounted(async () => {
@@ -119,6 +145,11 @@ async function loadProjects() {
 /** 刷新（操作成功后调用） */
 function handleRefresh() {
   loadProjects();
+}
+
+/** 切换排序模式 */
+function toggleSort() {
+  projectStore.cycleSortConfig();
 }
 
 /** 处理项目卡片点击 */

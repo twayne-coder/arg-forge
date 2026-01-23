@@ -20,14 +20,75 @@ export const useProjectStore = defineStore("project", () => {
   /** 当前选中的表单 */
   const currentForm = ref<Form | null>(null);
 
+  /** 排序配置 */
+  interface SortConfig {
+    sortBy: 'created_at' | 'updated_at';
+    order: 'asc' | 'desc';
+  }
+
+  const sortConfig = ref<SortConfig>({
+    sortBy: 'updated_at',
+    order: 'desc'
+  });
+
+  // 从 localStorage 读取排序偏好
+  const savedSortConfig = localStorage.getItem('project-sort-config');
+  if (savedSortConfig) {
+    try {
+      const parsed = JSON.parse(savedSortConfig) as SortConfig;
+      if ((parsed.sortBy === 'created_at' || parsed.sortBy === 'updated_at') &&
+          (parsed.order === 'asc' || parsed.order === 'desc')) {
+        sortConfig.value = parsed;
+      }
+    } catch (e) {
+      // 忽略解析错误，使用默认值
+    }
+  }
+
   // ========== 计算属性 ==========
   /** 当前项目的表单列表 */
   const currentForms = computed(() => currentProject.value?.forms ?? []);
 
+  /** 排序后的项目列表 */
+  const sortedProjects = computed(() => {
+    return [...projects.value].sort((a, b) => {
+      const aTime = a[sortConfig.value.sortBy];
+      const bTime = b[sortConfig.value.sortBy];
+      const comparison = aTime.localeCompare(bTime);
+      // 根据排序方向返回结果
+      return sortConfig.value.order === 'asc' ? comparison : -comparison;
+    });
+  });
+
   /** 是否有项目 */
-  const hasProjects = computed(() => projects.value.length > 0);
+  const hasProjects = computed(() => sortedProjects.value.length > 0);
 
   // ========== Actions ==========
+
+  /**
+   * 循环切换排序配置
+   * 顺序：修改时间降序 → 修改时间正序 → 创建时间降序 → 创建时间正序 → 回到修改时间降序
+   * @returns 新的排序配置
+   */
+  function cycleSortConfig() {
+    const { sortBy, order } = sortConfig.value;
+    let newSortConfig: SortConfig;
+
+    // 循环顺序：修改时间降序 → 修改时间正序 → 创建时间降序 → 创建时间正序 → 回到修改时间降序
+    if (sortBy === 'updated_at' && order === 'desc') {
+      newSortConfig = { sortBy: 'updated_at', order: 'asc' };
+    } else if (sortBy === 'updated_at' && order === 'asc') {
+      newSortConfig = { sortBy: 'created_at', order: 'desc' };
+    } else if (sortBy === 'created_at' && order === 'desc') {
+      newSortConfig = { sortBy: 'created_at', order: 'asc' };
+    } else {
+      newSortConfig = { sortBy: 'updated_at', order: 'desc' };
+    }
+
+    sortConfig.value = newSortConfig;
+    localStorage.setItem('project-sort-config', JSON.stringify(newSortConfig));
+    return newSortConfig;
+  }
 
   /**
    * 加载所有项目
@@ -473,10 +534,12 @@ export const useProjectStore = defineStore("project", () => {
     projects,
     currentProject,
     currentForm,
+    sortConfig,
 
     // 计算属性
     currentForms,
     hasProjects,
+    sortedProjects,
 
     // Actions
     loadProjects,
@@ -486,6 +549,7 @@ export const useProjectStore = defineStore("project", () => {
     deleteProject,
     duplicateProject,
     setCurrentProject,
+    cycleSortConfig,
     createForm,
     updateForm,
     deleteForm,
