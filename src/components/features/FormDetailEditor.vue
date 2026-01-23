@@ -79,7 +79,7 @@
         </div>
       </div>
 
-      <ScrollArea class="flex-1">
+      <div class="flex-1 overflow-y-auto">
         <div class="p-4 space-y-3">
           <!-- 拖拽区域 -->
           <div ref="listRef" class="space-y-3">
@@ -124,7 +124,7 @@
             </div>
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
 
     <!-- 下拉选项对话框 -->
@@ -140,7 +140,6 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import Sortable from "sortablejs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -186,14 +185,22 @@ const selectedItem = ref<FormItem | null>(null);
  * 初始化拖拽排序
  */
 onMounted(() => {
-  if (!listRef.value) return;
+  if (!listRef.value) {
+    return;
+  }
 
   sortableInstance = Sortable.create(listRef.value, {
     handle: ".drag-handle",
-    animation: 150,
-    ghostClass: "opacity-50",
+    animation: 350,
+    easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    ghostClass: "sortable-ghost",
+    dragClass: "sortable-drag",
     scroll: true,
     bubbleScroll: true,
+    forceFallback: true,
+    fallbackClass: 'sortable-fallback',
+    fallbackOnBody: true,
+    swapThreshold: 0.65,
     onEnd: async (evt) => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
@@ -255,13 +262,35 @@ async function copyCommand() {
 </script>
 
 <style scoped>
-/* 可拖拽项的样式 */
+/* 拖拽时的占位符样式（原位置） */
 .sortable-ghost {
-  opacity: 0.5;
+  opacity: 0.4;
   background-color: hsl(var(--accent));
+  border: 2px dashed hsl(var(--primary) / 0.5);
+  transform: scale(0.98);
 }
 
+/* 正在被拖拽的元素样式 */
 .sortable-drag {
   opacity: 1;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+  cursor: grabbing;
+}
+
+/* Fallback 拖拽样式 */
+.sortable-fallback {
+  opacity: 0.9;
+  background-color: hsl(var(--card));
+  box-shadow: 0 15px 50px -12px rgba(0, 0, 0, 0.4);
+  border-radius: 0.5rem;
+  cursor: grabbing;
+}
+
+/* 所有可拖拽项添加过渡效果 */
+:deep(.group) {
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
 }
 </style>

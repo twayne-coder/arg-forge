@@ -8,11 +8,8 @@
     ]"
   >
     <!-- 拖拽手柄 -->
-    <div
-      class="drag-handle cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
-      @mousedown.stop
-    >
-      <GripVerticalIcon class="h-5 w-5" />
+    <div class="drag-handle shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground relative">
+      <GripVerticalIcon class="h-5 w-5 pointer-events-none" />
     </div>
 
     <!-- 启用开关 -->
