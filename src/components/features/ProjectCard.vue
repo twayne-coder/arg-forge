@@ -4,11 +4,11 @@
     @click="handleClick"
   >
     <CardHeader>
-      <CardTitle class="flex items-center justify-between">
+      <CardTitle class="flex items-center justify-between text-lg">
         <span class="truncate">{{ project.name }}</span>
         <ProjectCardDropdown :project="project" @click.stop />
       </CardTitle>
-      <CardDescription class="line-clamp-2">
+      <CardDescription class="line-clamp-3">
         {{ project.description || "暂无描述" }}
       </CardDescription>
     </CardHeader>
@@ -45,9 +45,9 @@ function handleClick() {
 
 <style scoped>
 /* 确保文本截断正常工作 */
-.line-clamp-2 {
+.line-clamp-3 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
