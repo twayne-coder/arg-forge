@@ -180,7 +180,8 @@ onMounted(async () => {
 
 /** 离开页面前清理状态 */
 onBeforeRouteLeave(() => {
-  // 清空当前表单状态，避免状态残留导致闪烁
+  // 清空当前项目和表单状态，避免状态残留导致闪烁
+  projectStore.currentProject = null;
   projectStore.setCurrentForm(null);
 });
 
