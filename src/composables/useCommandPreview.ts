@@ -6,7 +6,6 @@
 import { ref, watch, computed } from "vue";
 import { useProjectStore } from "@/stores/project";
 import { generateCommand } from "@/api/command";
-import { useDebounceFn } from "@vueuse/core";
 
 /**
  * 使用命令预览
@@ -26,9 +25,9 @@ export function useCommandPreview() {
   const formId = computed(() => projectStore.currentForm?.id);
 
   /**
-   * 生成命令（防抖处理）
+   * 生成命令
    */
-  const generateCommandDebounced = useDebounceFn(async () => {
+  const generateCommandPreview = async () => {
     if (!projectId.value || !formId.value) {
       commandPreview.value = "";
       return;
@@ -40,7 +39,7 @@ export function useCommandPreview() {
       console.error("生成命令失败:", error);
       commandPreview.value = "生成失败";
     }
-  }, 300); // 300ms 防抖
+  };
 
   /**
    * 监听表单变化，自动更新命令预览
@@ -48,13 +47,13 @@ export function useCommandPreview() {
   watch(
     () => projectStore.currentForm,
     () => {
-      generateCommandDebounced();
+      generateCommandPreview();
     },
-    { deep: true }
+    { deep: true, immediate: true }
   );
 
   return {
     commandPreview,
-    generateCommand: generateCommandDebounced,
+    generateCommand: generateCommandPreview,
   };
 }
