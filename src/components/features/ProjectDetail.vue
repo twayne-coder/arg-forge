@@ -196,14 +196,36 @@ function openEditProjectDialog() {
 
 /** 表单操作成功后的处理 */
 async function handleFormSuccess() {
+  // 保存当前表单 ID
+  const savedFormId = projectStore.currentForm?.id;
+
   // 重新加载项目数据
   await loadProject();
+
+  // 恢复表单选中状态
+  if (savedFormId) {
+    const formToRestore = forms.value.find(f => f.id === savedFormId);
+    if (formToRestore) {
+      projectStore.setCurrentForm(formToRestore);
+    }
+  }
 }
 
 /** 项目更新后的处理 */
 async function handleProjectUpdated() {
+  // 保存当前表单 ID
+  const savedFormId = projectStore.currentForm?.id;
+
   // 重新加载项目数据
   await loadProject();
+
+  // 恢复表单选中状态
+  if (savedFormId) {
+    const formToRestore = forms.value.find(f => f.id === savedFormId);
+    if (formToRestore) {
+      projectStore.setCurrentForm(formToRestore);
+    }
+  }
 }
 </script>
 
