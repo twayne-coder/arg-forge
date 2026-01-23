@@ -39,7 +39,7 @@
           <div class="mt-3">
             <code
               v-if="commandPreview"
-              class="block bg-muted p-3 text-sm font-mono break-all"
+              class="block bg-muted p-3 text-sm font-mono break-all rounded-md"
             >
               {{ commandPreview }}
             </code>
