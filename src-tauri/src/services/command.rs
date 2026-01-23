@@ -17,27 +17,37 @@ impl CommandService {
     /// 2. 过滤出有值的参数项
     /// 3. 按顺序生成每个参数的字符串表示
     /// 4. 替换命令模板中的占位符
+    /// 5. 拼接前缀、模板、后缀
     ///
     /// # 示例
     /// ```text
     /// 假设有以下配置:
+    /// - command_prefix: "conda activate env && "
     /// - command_template: "python train.py {params}"
+    /// - command_suffix: " > output.log"
     /// - items: [
     ///     ParamStyle::Argparse: --lr 0.001
     ///     ParamStyle::Hydra: batch_size=32
     ///     ParamStyle::Positional: 100
     ///   ]
-    /// 生成结果: "python train.py --lr 0.001 batch_size=32 100"
+    /// 生成结果: "conda activate env && python train.py --lr 0.001 batch_size=32 100 > output.log"
     /// ```
     pub fn generate_command(form: &Form) -> Result<String> {
         // 1. 生成参数字符串
         let params_str = Self::generate_params_string(form)?;
 
         // 2. 替换命令模板中的占位符
-        let command = form
+        let template_with_params = form
             .command_template
-            .replace("{params}", &params_str)
-            .replace("{params}", &params_str); // 支持多次替换
+            .replace("{params}", &params_str);
+
+        // 3. 拼接前缀、模板、后缀
+        let command = format!(
+            "{}{}{}",
+            form.command_prefix,
+            template_with_params,
+            form.command_suffix
+        );
 
         Ok(command)
     }
@@ -133,7 +143,9 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "python train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -174,7 +186,9 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![FormItem {
                 id: Uuid::new_v4().to_string(),
                 param_name: "lr".to_string(),
@@ -192,13 +206,15 @@ mod tests {
 
     #[test]
     fn test_generate_command_hydra() {
-        let mut form = Form {
+        let form = Form {
             id: Uuid::new_v4().to_string(),
             name: "测试".to_string(),
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![FormItem {
                 id: Uuid::new_v4().to_string(),
                 param_name: "lr".to_string(),
@@ -216,13 +232,15 @@ mod tests {
 
     #[test]
     fn test_generate_command_positional() {
-        let mut form = Form {
+        let form = Form {
             id: Uuid::new_v4().to_string(),
             name: "测试".to_string(),
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![FormItem {
                 id: Uuid::new_v4().to_string(),
                 param_name: "".to_string(),
@@ -252,13 +270,15 @@ mod tests {
 
     #[test]
     fn test_disabled_item_excluded() {
-        let mut form = Form {
+        let form = Form {
             id: Uuid::new_v4().to_string(),
             name: "测试".to_string(),
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![FormItem {
                 id: Uuid::new_v4().to_string(),
                 param_name: "lr".to_string(),
@@ -276,13 +296,15 @@ mod tests {
 
     #[test]
     fn test_empty_value_excluded() {
-        let mut form = Form {
+        let form = Form {
             id: Uuid::new_v4().to_string(),
             name: "测试".to_string(),
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: vec![FormItem {
                 id: Uuid::new_v4().to_string(),
                 param_name: "lr".to_string(),
@@ -296,5 +318,110 @@ mod tests {
 
         let command = CommandService::generate_command(&form).unwrap();
         assert_eq!(command, "train.py "); // 空值被排除
+    }
+
+    #[test]
+    fn test_command_with_prefix_and_suffix() {
+        let form = Form {
+            id: Uuid::new_v4().to_string(),
+            name: "测试".to_string(),
+            description: String::new(),
+            sort_order: 0,
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: "conda activate env && ".to_string(),
+            command_template: "python train.py {params}".to_string(),
+            command_suffix: " > output.log".to_string(),
+            items: vec![FormItem {
+                id: Uuid::new_v4().to_string(),
+                param_name: "lr".to_string(),
+                param_value: "0.001".to_string(),
+                enabled: true,
+                param_style: ParamStyle::Argparse,
+                use_dropdown: false,
+                dropdown_options: vec![],
+            }],
+        };
+
+        let command = CommandService::generate_command(&form).unwrap();
+        assert_eq!(command, "conda activate env && python train.py --lr 0.001 > output.log");
+    }
+
+    #[test]
+    fn test_command_empty_prefix_suffix() {
+        // 测试向后兼容：空前后缀不影响现有功能
+        let form = Form {
+            id: Uuid::new_v4().to_string(),
+            name: "测试".to_string(),
+            description: String::new(),
+            sort_order: 0,
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
+            command_template: "python train.py {params}".to_string(),
+            command_suffix: String::new(),
+            items: vec![FormItem {
+                id: Uuid::new_v4().to_string(),
+                param_name: "lr".to_string(),
+                param_value: "0.001".to_string(),
+                enabled: true,
+                param_style: ParamStyle::Argparse,
+                use_dropdown: false,
+                dropdown_options: vec![],
+            }],
+        };
+
+        let command = CommandService::generate_command(&form).unwrap();
+        assert!(command.starts_with("python train.py"));
+    }
+
+    #[test]
+    fn test_command_with_prefix_only() {
+        let form = Form {
+            id: Uuid::new_v4().to_string(),
+            name: "测试".to_string(),
+            description: String::new(),
+            sort_order: 0,
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: "cd /path && ".to_string(),
+            command_template: "python main.py {params}".to_string(),
+            command_suffix: String::new(),
+            items: vec![FormItem {
+                id: Uuid::new_v4().to_string(),
+                param_name: "config".to_string(),
+                param_value: "config.yaml".to_string(),
+                enabled: true,
+                param_style: ParamStyle::Hydra,
+                use_dropdown: false,
+                dropdown_options: vec![],
+            }],
+        };
+
+        let command = CommandService::generate_command(&form).unwrap();
+        assert_eq!(command, "cd /path && python main.py config=config.yaml");
+    }
+
+    #[test]
+    fn test_command_with_suffix_only() {
+        let form = Form {
+            id: Uuid::new_v4().to_string(),
+            name: "测试".to_string(),
+            description: String::new(),
+            sort_order: 0,
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
+            command_template: "python main.py {params}".to_string(),
+            command_suffix: " 2>&1 | tee log.txt".to_string(),
+            items: vec![FormItem {
+                id: Uuid::new_v4().to_string(),
+                param_name: "".to_string(),
+                param_value: "run".to_string(),
+                enabled: true,
+                param_style: ParamStyle::Positional,
+                use_dropdown: false,
+                dropdown_options: vec![],
+            }],
+        };
+
+        let command = CommandService::generate_command(&form).unwrap();
+        assert_eq!(command, "python main.py run 2>&1 | tee log.txt");
     }
 }

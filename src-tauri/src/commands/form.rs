@@ -9,6 +9,9 @@ use tauri::State;
 /// * `project_id` - 项目 ID
 /// * `name` - 表单名称
 /// * `description` - 表单描述
+/// * `command_prefix` - 命令前缀（可选）
+/// * `command_template` - 命令模板（可选）
+/// * `command_suffix` - 命令后缀（可选）
 /// * `storage` - 存储服务实例
 ///
 /// # 返回
@@ -19,7 +22,10 @@ use tauri::State;
 /// const form = await invoke('create_form', {
 ///   projectId: 'uuid-here',
 ///   name: '训练配置',
-///   description: '模型训练参数'
+///   description: '模型训练参数',
+///   commandPrefix: 'conda activate env && ',
+///   commandTemplate: 'python train.py {params}',
+///   commandSuffix: ' > output.log'
 /// });
 /// ```
 #[tauri::command]
@@ -27,6 +33,9 @@ pub async fn create_form(
     project_id: String,
     name: String,
     description: String,
+    command_prefix: Option<String>,
+    command_template: Option<String>,
+    command_suffix: Option<String>,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
     // 加载项目
@@ -36,6 +45,9 @@ pub async fn create_form(
     let mut form = Form::default();
     form.name = name;
     form.description = description;
+    form.command_prefix = command_prefix.unwrap_or_default();
+    form.command_template = command_template.unwrap_or_else(|| form.command_template.clone());
+    form.command_suffix = command_suffix.unwrap_or_default();
     form.sort_order = project.forms.len() as i32;
 
     // 添加到项目
@@ -56,7 +68,9 @@ pub async fn create_form(
 /// * `form_id` - 表单 ID
 /// * `name` - 新的表单名称
 /// * `description` - 新的表单描述
+/// * `command_prefix` - 新的命令前缀
 /// * `command_template` - 新的命令模板
+/// * `command_suffix` - 新的命令后缀
 /// * `storage` - 存储服务实例
 ///
 /// # 返回
@@ -69,7 +83,9 @@ pub async fn create_form(
 ///   formId: 'form-uuid',
 ///   name: '新名称',
 ///   description: '新描述',
-///   commandTemplate: 'python train.py {params}'
+///   commandPrefix: 'conda activate env && ',
+///   commandTemplate: 'python train.py {params}',
+///   commandSuffix: ' > output.log'
 /// });
 /// ```
 #[tauri::command]
@@ -78,7 +94,9 @@ pub async fn update_form(
     form_id: String,
     name: String,
     description: String,
+    command_prefix: String,
     command_template: String,
+    command_suffix: String,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
     // 加载项目
@@ -92,7 +110,9 @@ pub async fn update_form(
     // 更新字段
     form.name = name;
     form.description = description;
+    form.command_prefix = command_prefix;
     form.command_template = command_template;
+    form.command_suffix = command_suffix;
     form.updated_at = chrono::Utc::now().to_rfc3339();
 
     // 克隆表单用于返回（在保存前）

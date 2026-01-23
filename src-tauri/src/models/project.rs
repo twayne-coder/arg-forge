@@ -89,11 +89,23 @@ pub struct Form {
     /// ISO 8601 格式的时间字符串
     pub updated_at: String,
 
+    /// 命令前缀
+    /// 在命令模板前添加的内容，如环境激活、cd 命令等
+    /// 示例："conda activate myenv && "
+    #[serde(default)]
+    pub command_prefix: String,
+
     /// 命令模板
     /// 支持占位符：
     /// - {params}: 会被生成的参数字符串替换
     /// 示例："python train.py {params}"
     pub command_template: String,
+
+    /// 命令后缀
+    /// 在命令模板后添加的内容，如重定向、管道等
+    /// 示例：" > output.log 2>&1"
+    #[serde(default)]
+    pub command_suffix: String,
 
     /// 参数项列表
     /// 按顺序排列的所有参数配置
@@ -108,7 +120,9 @@ impl Default for Form {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_prefix: String::new(),
             command_template: "python train.py {params}".to_string(),
+            command_suffix: String::new(),
             items: Vec::new(),
         }
     }
