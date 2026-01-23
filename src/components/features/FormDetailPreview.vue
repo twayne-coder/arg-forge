@@ -1,29 +1,30 @@
 <template>
-  <div class="form-detail-preview h-full flex flex-col">
-    <!-- 表单头部 -->
-    <div class="p-6 shrink-0">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <CardTitle class="text-xl">{{ form.name }}</CardTitle>
-          <CardDescription v-if="form.description" class="mt-1">
-            {{ form.description }}
-          </CardDescription>
-          <p class="text-xs text-muted-foreground mt-2">
-            更新于 {{ formatTime(form.updated_at) }}
-          </p>
+  <div class="form-detail-preview h-full flex flex-col overflow-hidden">
+    <!-- 整体滚动容器 -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- 表单头部 -->
+      <div class="p-6">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <CardTitle class="text-xl">{{ form.name }}</CardTitle>
+            <CardDescription v-if="form.description" class="mt-1">
+              {{ form.description }}
+            </CardDescription>
+            <p class="text-xs text-muted-foreground mt-2">
+              更新于 {{ formatTime(form.updated_at) }}
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" @click="$emit('edit')">
+            <EditIcon class="h-4 w-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" @click="$emit('edit')">
-          <EditIcon class="h-4 w-4" />
-        </Button>
       </div>
-    </div>
 
-    <!-- 分隔线 -->
-    <Separator class="shrink-0" />
+      <!-- 分隔线 -->
+      <Separator />
 
-    <!-- 内容区 -->
-    <ScrollArea class="flex-1">
-      <div class="p-6 space-y-6">
+      <!-- 内容区 -->
+      <div class="px-6 pt-6 pb-12 space-y-6">
         <!-- 表单项列表 -->
         <div>
           <CardTitle class="text-sm font-medium mb-4">
@@ -108,14 +109,13 @@
           </div>
         </div>
       </div>
-    </ScrollArea>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";

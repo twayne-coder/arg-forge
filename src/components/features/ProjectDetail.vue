@@ -1,7 +1,7 @@
 <template>
   <div class="project-detail h-full flex flex-col">
     <!-- 顶部导航栏 -->
-    <header class="flex items-center justify-between px-6 py-4 border-b bg-card">
+    <header class="shrink-0 flex items-center justify-between px-6 py-4 border-b bg-card">
       <div class="flex items-center gap-2">
         <Button variant="ghost" size="sm" @click="goBack">
           <ArrowLeftIcon class="h-4 w-4 mr-1" />
@@ -36,7 +36,7 @@
     </header>
 
     <!-- 分割器布局 -->
-    <Splitpanes class="h-full">
+    <Splitpanes class="flex-1 overflow-hidden">
       <!-- 左侧: 表单列表 -->
       <Pane :size="30" :min-size="15" :max-size="50">
         <aside class="form-list-panel h-full bg-card flex flex-col">
