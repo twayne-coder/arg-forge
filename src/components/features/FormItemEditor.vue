@@ -4,7 +4,7 @@
       'group flex items-center gap-3 rounded-lg border bg-card p-3 transition-all',
       'hover:border-primary/50 hover:shadow-sm',
       !item.enabled && 'opacity-50',
-      item.item_type === 'Command' && 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+      item.item_type === 'Command' && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900'
     ]"
   >
     <!-- 拖拽手柄 -->
@@ -30,7 +30,7 @@
       <SelectContent>
         <SelectItem value="Command">
           <div class="flex items-center gap-2">
-            <TerminalIcon class="h-3.5 w-3.5 text-blue-600" />
+            <TerminalIcon class="h-3.5 w-3.5 text-emerald-600" />
             <span>命令</span>
           </div>
         </SelectItem>
