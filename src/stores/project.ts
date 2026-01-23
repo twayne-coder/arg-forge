@@ -167,28 +167,22 @@ export const useProjectStore = defineStore("project", () => {
 
   /**
    * 创建表单
-   * @param data - 表单数据 { name, description, command_prefix, command_template, command_suffix }
+   * @param data - 表单数据 { name, description }
    */
   async function createForm(data: {
     name: string;
     description?: string;
-    command_prefix?: string;
-    command_template?: string;
-    command_suffix?: string;
   }) {
     if (!currentProject.value) {
       throw new Error("没有当前项目");
     }
 
     try {
-      // 一次性创建表单（包含所有字段）
+      // 创建表单
       const newForm = await formApi.createForm(
         currentProject.value.id,
         data.name,
-        data.description || "",
-        data.command_prefix || "",
-        data.command_template || "",
-        data.command_suffix || ""
+        data.description || ""
       );
 
       // 更新当前项目的表单列表
@@ -209,16 +203,13 @@ export const useProjectStore = defineStore("project", () => {
   /**
    * 更新表单
    * @param formId - 表单 ID
-   * @param data - 表单数据 { name, description, command_prefix, command_template, command_suffix }
+   * @param data - 表单数据 { name, description }
    */
   async function updateForm(
     formId: string,
     data: {
       name: string;
       description?: string;
-      command_prefix?: string;
-      command_template?: string;
-      command_suffix?: string;
     }
   ) {
     if (!currentProject.value) {
@@ -230,10 +221,7 @@ export const useProjectStore = defineStore("project", () => {
         currentProject.value.id,
         formId,
         data.name,
-        data.description || "",
-        data.command_prefix || "",
-        data.command_template || "",
-        data.command_suffix || ""
+        data.description || ""
       );
 
       // 更新当前项目中的表单
@@ -288,7 +276,7 @@ export const useProjectStore = defineStore("project", () => {
   /**
    * 添加表单项
    */
-  async function addFormItem() {
+  async function addFormItem(itemType?: "Command" | "Parameter") {
     if (!currentProject.value || !currentForm.value) {
       throw new Error("没有选中的项目或表单");
     }
@@ -296,7 +284,8 @@ export const useProjectStore = defineStore("project", () => {
     try {
       const newItem = await formApi.addFormItem(
         currentProject.value.id,
-        currentForm.value.id
+        currentForm.value.id,
+        itemType
       );
 
       // 更新本地状态

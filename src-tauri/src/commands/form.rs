@@ -9,9 +9,6 @@ use tauri::State;
 /// * `project_id` - 项目 ID
 /// * `name` - 表单名称
 /// * `description` - 表单描述
-/// * `command_prefix` - 命令前缀（可选）
-/// * `command_template` - 命令模板（可选）
-/// * `command_suffix` - 命令后缀（可选）
 /// * `storage` - 存储服务实例
 ///
 /// # 返回
@@ -22,10 +19,7 @@ use tauri::State;
 /// const form = await invoke('create_form', {
 ///   projectId: 'uuid-here',
 ///   name: '训练配置',
-///   description: '模型训练参数',
-///   commandPrefix: 'conda activate env && ',
-///   commandTemplate: 'python train.py {params}',
-///   commandSuffix: ' > output.log'
+///   description: '模型训练参数'
 /// });
 /// ```
 #[tauri::command]
@@ -33,9 +27,6 @@ pub async fn create_form(
     project_id: String,
     name: String,
     description: String,
-    command_prefix: Option<String>,
-    command_template: Option<String>,
-    command_suffix: Option<String>,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
     // 加载项目
@@ -45,9 +36,6 @@ pub async fn create_form(
     let mut form = Form::default();
     form.name = name;
     form.description = description;
-    form.command_prefix = command_prefix.unwrap_or_default();
-    form.command_template = command_template.unwrap_or_else(|| form.command_template.clone());
-    form.command_suffix = command_suffix.unwrap_or_default();
     form.sort_order = project.forms.len() as i32;
 
     // 添加到项目
@@ -68,9 +56,6 @@ pub async fn create_form(
 /// * `form_id` - 表单 ID
 /// * `name` - 新的表单名称
 /// * `description` - 新的表单描述
-/// * `command_prefix` - 新的命令前缀
-/// * `command_template` - 新的命令模板
-/// * `command_suffix` - 新的命令后缀
 /// * `storage` - 存储服务实例
 ///
 /// # 返回
@@ -82,10 +67,7 @@ pub async fn create_form(
 ///   projectId: 'project-uuid',
 ///   formId: 'form-uuid',
 ///   name: '新名称',
-///   description: '新描述',
-///   commandPrefix: 'conda activate env && ',
-///   commandTemplate: 'python train.py {params}',
-///   commandSuffix: ' > output.log'
+///   description: '新描述'
 /// });
 /// ```
 #[tauri::command]
@@ -94,9 +76,6 @@ pub async fn update_form(
     form_id: String,
     name: String,
     description: String,
-    command_prefix: String,
-    command_template: String,
-    command_suffix: String,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
     // 加载项目
@@ -110,9 +89,6 @@ pub async fn update_form(
     // 更新字段
     form.name = name;
     form.description = description;
-    form.command_prefix = command_prefix;
-    form.command_template = command_template;
-    form.command_suffix = command_suffix;
     form.updated_at = chrono::Utc::now().to_rfc3339();
 
     // 克隆表单用于返回（在保存前）
@@ -173,10 +149,11 @@ pub async fn delete_form(
 /// * `storage` - 存储服务实例
 ///
 /// # 支持的字段
-/// - `param_name`: 参数名（字符串）
-/// - `param_value`: 参数值（字符串）
+/// - `item_type`: 表单项类型（字符串："Command", "Parameter"）
+/// - `content`: 内容（字符串）
+/// - `param_name`: 参数名（字符串，仅 Parameter 类型）
 /// - `enabled`: 是否启用（布尔）
-/// - `param_style`: 参数风格（字符串："Argparse", "Hydra", "Positional"）
+/// - `param_style`: 参数风格（字符串："KeyValue", "EqualValue", "ValueOnly"）
 /// - `use_dropdown`: 是否使用下拉（布尔）
 ///
 /// # 返回
@@ -184,12 +161,12 @@ pub async fn delete_form(
 ///
 /// # 示例
 /// ```javascript
-/// // 更新参数值
+/// // 更新内容
 /// const form = await invoke('update_form_item', {
 ///   projectId: 'project-uuid',
 ///   formId: 'form-uuid',
 ///   itemId: 'item-uuid',
-///   fieldName: 'param_value',
+///   fieldName: 'content',
 ///   value: '0.001'
 /// });
 /// ```
@@ -219,16 +196,26 @@ pub async fn update_form_item(
 
     // 根据字段名更新对应字段
     match field_name.as_str() {
+        "item_type" => {
+            let type_str = value
+                .as_str()
+                .ok_or("item_type 必须是字符串")?;
+            item.item_type = match type_str {
+                "Command" => crate::models::ItemType::Command,
+                "Parameter" => crate::models::ItemType::Parameter,
+                _ => return Err(format!("无效的项类型: {}", type_str)),
+            };
+        }
+        "content" => {
+            item.content = value
+                .as_str()
+                .ok_or("content 必须是字符串")?
+                .to_string();
+        }
         "param_name" => {
             item.param_name = value
                 .as_str()
                 .ok_or("param_name 必须是字符串")?
-                .to_string();
-        }
-        "param_value" => {
-            item.param_value = value
-                .as_str()
-                .ok_or("param_value 必须是字符串")?
                 .to_string();
         }
         "enabled" => {
@@ -239,9 +226,9 @@ pub async fn update_form_item(
                 .as_str()
                 .ok_or("param_style 必须是字符串")?;
             item.param_style = match style_str {
-                "Argparse" => crate::models::ParamStyle::Argparse,
-                "Hydra" => crate::models::ParamStyle::Hydra,
-                "Positional" => crate::models::ParamStyle::Positional,
+                "KeyValue" => crate::models::ParamStyle::KeyValue,
+                "EqualValue" => crate::models::ParamStyle::EqualValue,
+                "ValueOnly" => crate::models::ParamStyle::ValueOnly,
                 _ => return Err(format!("无效的参数风格: {}", style_str)),
             };
         }
@@ -272,6 +259,7 @@ pub async fn update_form_item(
 /// # 参数
 /// * `project_id` - 项目 ID
 /// * `form_id` - 表单 ID
+/// * `item_type` - 表单项类型（"Command" 或 "Parameter"，默认为 "Parameter"）
 /// * `storage` - 存储服务实例
 ///
 /// # 返回
@@ -279,15 +267,25 @@ pub async fn update_form_item(
 ///
 /// # 示例
 /// ```javascript
+/// // 添加参数项
 /// const newItem = await invoke('add_form_item', {
 ///   projectId: 'project-uuid',
-///   formId: 'form-uuid'
+///   formId: 'form-uuid',
+///   itemType: 'Parameter'
+/// });
+///
+/// // 添加命令项
+/// const cmdItem = await invoke('add_form_item', {
+///   projectId: 'project-uuid',
+///   formId: 'form-uuid',
+///   itemType: 'Command'
 /// });
 /// ```
 #[tauri::command]
 pub async fn add_form_item(
     project_id: String,
     form_id: String,
+    item_type: Option<String>,
     storage: State<'_, StorageService>,
 ) -> Result<FormItem, String> {
     // 加载项目
@@ -299,7 +297,17 @@ pub async fn add_form_item(
         .ok_or_else(|| format!("表单未找到: {}", form_id))?;
 
     // 创建新表单项
-    let item = FormItem::default();
+    let mut item = FormItem::default();
+
+    // 根据参数设置类型
+    if let Some(type_str) = item_type {
+        item.item_type = match type_str.as_str() {
+            "Command" => crate::models::ItemType::Command,
+            "Parameter" => crate::models::ItemType::Parameter,
+            _ => return Err(format!("无效的项类型: {}", type_str)),
+        };
+    }
+
     form.items.push(item.clone());
 
     // 更新表单时间戳
@@ -524,7 +532,7 @@ pub async fn toggle_dropdown_mode(
 
     // 如果切换到下拉模式且没有选项，添加默认选项
     if use_dropdown && item.dropdown_options.is_empty() {
-        item.dropdown_options = vec![item.param_value.clone()];
+        item.dropdown_options = vec![item.content.clone()];
     }
 
     // 更新表单时间戳

@@ -4,4 +4,4 @@
 pub mod project;
 
 // 导出常用的类型
-pub use project::{Form, FormItem, ParamStyle, Project};
+pub use project::{Form, FormItem, ItemType, ParamStyle, Project};

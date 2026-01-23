@@ -4,33 +4,24 @@
  */
 
 import { invoke } from "@/lib/tauri";
-import type { Form, FormItem } from "@/types/bindings";
+import type { Form, FormItem, ItemType } from "@/types/bindings";
 
 /**
  * 创建表单
  * @param projectId - 项目 ID
  * @param name - 表单名称
  * @param description - 表单描述
- * @param commandPrefix - 命令前缀（可选）
- * @param commandTemplate - 命令模板（可选）
- * @param commandSuffix - 命令后缀（可选）
  * @returns 创建的表单对象
  */
 export async function createForm(
   projectId: string,
   name: string,
-  description: string,
-  commandPrefix?: string,
-  commandTemplate?: string,
-  commandSuffix?: string
+  description: string
 ): Promise<Form> {
   return await invoke("create_form", {
     projectId,
     name,
     description,
-    commandPrefix: commandPrefix || "",
-    commandTemplate: commandTemplate || "python train.py {params}",
-    commandSuffix: commandSuffix || "",
   });
 }
 
@@ -40,28 +31,19 @@ export async function createForm(
  * @param formId - 表单 ID
  * @param name - 新的表单名称
  * @param description - 新的表单描述
- * @param commandPrefix - 新的命令前缀
- * @param commandTemplate - 新的命令模板
- * @param commandSuffix - 新的命令后缀
  * @returns 更新后的表单对象
  */
 export async function updateForm(
   projectId: string,
   formId: string,
   name: string,
-  description: string,
-  commandPrefix: string,
-  commandTemplate: string,
-  commandSuffix: string
+  description: string
 ): Promise<Form> {
   return await invoke("update_form", {
     projectId,
     formId,
     name,
     description,
-    commandPrefix,
-    commandTemplate,
-    commandSuffix,
   });
 }
 
@@ -103,13 +85,19 @@ export async function updateFormItem(
  * 添加新的表单项
  * @param projectId - 项目 ID
  * @param formId - 表单 ID
+ * @param itemType - 表单项类型（"Command" 或 "Parameter"）
  * @returns 新创建的表单项
  */
 export async function addFormItem(
   projectId: string,
-  formId: string
+  formId: string,
+  itemType?: ItemType
 ): Promise<FormItem> {
-  return await invoke("add_form_item", { projectId, formId });
+  return await invoke("add_form_item", {
+    projectId,
+    formId,
+    itemType,
+  });
 }
 
 /**

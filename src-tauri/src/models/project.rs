@@ -2,49 +2,62 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use uuid::Uuid;
 
+/// 表单项类型枚举
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub enum ItemType {
+    /// 命令项：直接拼接可执行命令
+    Command,
+    /// 参数项：需要格式化的参数
+    Parameter,
+}
+
 /// 参数风格枚举
 /// 定义三种不同的命令行参数格式
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub enum ParamStyle {
-    /// Argparse 风格：--key value
+    /// KeyValue 风格：--key value
     /// 示例：--lr 0.001 --batch-size 32
-    Argparse,
+    KeyValue,
 
-    /// Hydra 风格：key=value
+    /// EqualValue 风格：key=value
     /// 示例：lr=0.001 batch_size=32
-    Hydra,
+    EqualValue,
 
-    /// 位置参数：只有值，没有键
+    /// ValueOnly 风格：只有值，没有键
     /// 示例：0.001 32
-    Positional,
+    ValueOnly,
 }
 
-/// 表单项（参数项）
-/// 代表单个命令行参数的配置
+/// 表单项
+/// 代表单个命令或参数配置
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct FormItem {
     /// 唯一标识符（UUID）
     pub id: String,
 
-    /// 参数名
+    /// 表单项类型
+    pub item_type: ItemType,
+
+    /// 统一内容字段
+    /// - Command 类型：命令内容（如 "python train.py"）
+    /// - Parameter 类型：参数值（如 "0.001", "32"）
+    pub content: String,
+
+    /// 参数名（仅 Parameter 类型使用）
     /// 示例：lr, batch_size, epoch
     pub param_name: String,
 
-    /// 参数值
-    /// 示例：0.001, 32, 100
-    pub param_value: String,
-
     /// 是否启用
-    /// 禁用的参数不会参与命令生成
+    /// 禁用的项不会参与命令生成
     pub enabled: bool,
 
-    /// 参数风格
+    /// 参数风格（仅 Parameter 类型使用）
     /// 决定该参数在命令中的呈现方式
     pub param_style: ParamStyle,
 
     /// 是否使用下拉选择
     /// true: 从 dropdown_options 中选择
-    /// false: 手动输入参数值
+    /// false: 手动输入内容
     pub use_dropdown: bool,
 
     /// 下拉选项列表
@@ -56,10 +69,11 @@ impl Default for FormItem {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4().to_string(),
+            item_type: ItemType::Parameter,
+            content: String::new(),
             param_name: String::new(),
-            param_value: String::new(),
             enabled: true,
-            param_style: ParamStyle::Argparse,
+            param_style: ParamStyle::KeyValue,
             use_dropdown: false,
             dropdown_options: Vec::new(),
         }
@@ -67,7 +81,7 @@ impl Default for FormItem {
 }
 
 /// 表单
-/// 代表一个命令模板及其所有参数配置
+/// 代表一个命令配置表单及其所有项
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct Form {
     /// 唯一标识符（UUID）
@@ -89,26 +103,8 @@ pub struct Form {
     /// ISO 8601 格式的时间字符串
     pub updated_at: String,
 
-    /// 命令前缀
-    /// 在命令模板前添加的内容，如环境激活、cd 命令等
-    /// 示例："conda activate myenv && "
-    #[serde(default)]
-    pub command_prefix: String,
-
-    /// 命令模板
-    /// 支持占位符：
-    /// - {params}: 会被生成的参数字符串替换
-    /// 示例："python train.py {params}"
-    pub command_template: String,
-
-    /// 命令后缀
-    /// 在命令模板后添加的内容，如重定向、管道等
-    /// 示例：" > output.log 2>&1"
-    #[serde(default)]
-    pub command_suffix: String,
-
-    /// 参数项列表
-    /// 按顺序排列的所有参数配置
+    /// 表单项列表
+    /// 按顺序排列的所有命令和参数配置
     pub items: Vec<FormItem>,
 }
 
@@ -120,9 +116,6 @@ impl Default for Form {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
-            command_prefix: String::new(),
-            command_template: "python train.py {params}".to_string(),
-            command_suffix: String::new(),
             items: Vec::new(),
         }
     }
@@ -264,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_param_style_equality() {
-        assert_eq!(ParamStyle::Argparse, ParamStyle::Argparse);
-        assert_ne!(ParamStyle::Argparse, ParamStyle::Hydra);
+        assert_eq!(ParamStyle::KeyValue, ParamStyle::KeyValue);
+        assert_ne!(ParamStyle::KeyValue, ParamStyle::EqualValue);
     }
 }

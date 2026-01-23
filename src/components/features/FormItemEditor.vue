@@ -3,7 +3,8 @@
     :class="[
       'group flex items-center gap-3 rounded-lg border bg-card p-3 transition-all',
       'hover:border-primary/50 hover:shadow-sm',
-      !item.enabled && 'opacity-50'
+      !item.enabled && 'opacity-50',
+      item.item_type === 'Command' && 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
     ]"
   >
     <!-- 拖拽手柄 -->
@@ -18,70 +19,113 @@
       class="shrink-0"
     />
 
-    <!-- 参数名 -->
-    <div class="flex-1 min-w-0">
-      <Input
-        :model-value="item.param_name"
-        @update:model-value="handleUpdate('param_name', $event)"
-        placeholder="参数名"
-        class="font-mono text-sm"
-      />
-    </div>
-
-    <!-- 参数风格 -->
+    <!-- 类型选择器 -->
     <Select
-      :model-value="item.param_style"
-      @update:model-value="handleUpdate('param_style', $event)"
+      :model-value="item.item_type"
+      @update:model-value="handleUpdate('item_type', $event)"
     >
-      <SelectTrigger class="w-[130px]">
-        <SelectValue placeholder="风格" />
+      <SelectTrigger class="w-[110px]">
+        <SelectValue placeholder="类型" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="Argparse">
-          <span class="font-mono text-xs">--key value</span>
+        <SelectItem value="Command">
+          <div class="flex items-center gap-2">
+            <TerminalIcon class="h-3.5 w-3.5 text-blue-600" />
+            <span>命令</span>
+          </div>
         </SelectItem>
-        <SelectItem value="Hydra">
-          <span class="font-mono text-xs">key=value</span>
-        </SelectItem>
-        <SelectItem value="Positional">
-          <span class="font-mono text-xs">value</span>
+        <SelectItem value="Parameter">
+          <div class="flex items-center gap-2">
+            <SlidersIcon class="h-3.5 w-3.5" />
+            <span>参数</span>
+          </div>
         </SelectItem>
       </SelectContent>
     </Select>
 
-    <!-- 参数值 (输入框或下拉框) -->
-    <div class="flex-1 min-w-0">
-      <template v-if="item.use_dropdown && item.dropdown_options.length > 0">
-        <Select
-          :model-value="item.param_value"
-          @update:model-value="handleUpdate('param_value', $event)"
-        >
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="选择值" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="option in item.dropdown_options"
-              :key="option"
-              :value="option"
-            >
-              {{ option }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </template>
-      <template v-else>
+    <!-- Command 类型：仅显示内容输入框 -->
+    <template v-if="item.item_type === 'Command'">
+      <div class="flex-1 min-w-0">
         <Input
-          :model-value="item.param_value"
-          @update:model-value="handleUpdate('param_value', $event)"
-          placeholder="参数值"
-          class="text-sm"
+          :model-value="item.content"
+          @update:model-value="handleUpdate('content', $event)"
+          placeholder="命令内容（如 python train.py）"
+          class="font-mono text-sm"
         />
-      </template>
-    </div>
+      </div>
+    </template>
 
-    <!-- 下拉模式切换按钮 -->
+    <!-- Parameter 类型：根据 param_style 显示 -->
+    <template v-else>
+      <!-- 参数名（ValueOnly 时隐藏） -->
+      <div
+        v-if="item.param_style !== 'ValueOnly'"
+        class="flex-1 min-w-0"
+      >
+        <Input
+          :model-value="item.param_name"
+          @update:model-value="handleUpdate('param_name', $event)"
+          placeholder="参数名"
+          class="font-mono text-sm"
+        />
+      </div>
+
+      <!-- 参数风格 -->
+      <Select
+        :model-value="item.param_style"
+        @update:model-value="handleUpdate('param_style', $event)"
+      >
+        <SelectTrigger class="w-[130px]">
+          <SelectValue placeholder="风格" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="KeyValue">
+            <span class="font-mono text-xs">--key value</span>
+          </SelectItem>
+          <SelectItem value="EqualValue">
+            <span class="font-mono text-xs">key=value</span>
+          </SelectItem>
+          <SelectItem value="ValueOnly">
+            <span class="font-mono text-xs">value</span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <!-- 参数值（统一使用 content） -->
+      <div class="flex-1 min-w-0">
+        <template v-if="item.use_dropdown && item.dropdown_options.length > 0">
+          <Select
+            :model-value="item.content"
+            @update:model-value="handleUpdate('content', $event)"
+          >
+            <SelectTrigger class="w-full">
+              <SelectValue placeholder="选择值" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="option in item.dropdown_options"
+                :key="option"
+                :value="option"
+              >
+                {{ option }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </template>
+        <template v-else>
+          <Input
+            :model-value="item.content"
+            @update:model-value="handleUpdate('content', $event)"
+            placeholder="参数值"
+            class="text-sm"
+          />
+        </template>
+      </div>
+    </template>
+
+    <!-- 下拉模式切换按钮（仅参数项显示） -->
     <Button
+      v-if="item.item_type === 'Parameter'"
       variant="ghost"
       size="sm"
       @click="toggleDropdown"
@@ -94,9 +138,9 @@
       <ListIcon class="h-4 w-4" />
     </Button>
 
-    <!-- 下拉选项按钮 (仅在下拉模式时显示) -->
+    <!-- 下拉选项按钮 -->
     <Button
-      v-if="item.use_dropdown"
+      v-if="item.item_type === 'Parameter' && item.use_dropdown"
       variant="ghost"
       size="sm"
       @click="$emit('open-dropdown-options', item)"
@@ -112,7 +156,7 @@
       size="sm"
       @click="$emit('delete', item.id)"
       class="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-      title="删除参数"
+      title="删除"
     >
       <TrashIcon class="h-4 w-4" />
     </Button>
@@ -135,6 +179,8 @@ import {
   ListIcon,
   SettingsIcon,
   TrashIcon,
+  TerminalIcon,
+  SlidersIcon,
 } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import type { FormItem } from "@/types/bindings";

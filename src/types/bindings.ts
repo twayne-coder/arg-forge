@@ -2,9 +2,14 @@
 // 手动维护与 Rust models/project.rs 对应的类型
 
 /**
+ * 表单项类型枚举
+ */
+export type ItemType = "Command" | "Parameter";
+
+/**
  * 参数风格枚举
  */
-export type ParamStyle = "Argparse" | "Hydra" | "Positional";
+export type ParamStyle = "KeyValue" | "EqualValue" | "ValueOnly";
 
 /**
  * 表单项（参数项）
@@ -12,13 +17,15 @@ export type ParamStyle = "Argparse" | "Hydra" | "Positional";
 export interface FormItem {
   /** 唯一标识符（UUID） */
   id: string;
-  /** 参数名 */
+  /** 表单项类型 */
+  item_type: ItemType;
+  /** 统一内容字段（命令内容或参数值） */
+  content: string;
+  /** 参数名（仅 Parameter 类型使用） */
   param_name: string;
-  /** 参数值 */
-  param_value: string;
   /** 是否启用 */
   enabled: boolean;
-  /** 参数风格 */
+  /** 参数风格（仅 Parameter 类型使用） */
   param_style: ParamStyle;
   /** 是否使用下拉选择 */
   use_dropdown: boolean;
@@ -40,13 +47,7 @@ export interface Form {
   sort_order: number;
   /** 最后更新时间（ISO 8601） */
   updated_at: string;
-  /** 命令前缀（在模板前添加） */
-  command_prefix: string;
-  /** 命令模板（支持 {params} 占位符） */
-  command_template: string;
-  /** 命令后缀（在模板后添加） */
-  command_suffix: string;
-  /** 参数项列表 */
+  /** 表单项列表 */
   items: FormItem[];
 }
 

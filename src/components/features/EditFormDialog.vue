@@ -4,7 +4,7 @@
       <DialogHeader>
         <DialogTitle>编辑表单</DialogTitle>
         <DialogDescription>
-          修改表单的基本信息和命令模板
+          修改表单的基本信息
         </DialogDescription>
       </DialogHeader>
 
@@ -31,49 +31,6 @@
             rows="2"
             :disabled="loading"
           />
-        </div>
-
-        <!-- 命令前缀 -->
-        <div class="space-y-2">
-          <Label for="commandPrefix">命令前缀</Label>
-          <Input
-            id="commandPrefix"
-            v-model="formData.command_prefix"
-            placeholder='例如：conda activate myenv && cd /path/to/project'
-            :disabled="loading"
-          />
-          <p class="text-xs text-muted-foreground">
-            可选：在命令前添加环境设置、目录切换等操作
-          </p>
-        </div>
-
-        <!-- 命令模板 -->
-        <div class="space-y-2">
-          <Label for="commandTemplate">命令模板 <span class="text-destructive">*</span></Label>
-          <Input
-            id="commandTemplate"
-            v-model="formData.command_template"
-            placeholder='例如：python train.py {params}'
-            required
-            :disabled="loading"
-          />
-          <p class="text-xs text-muted-foreground">
-            使用 <code class="bg-muted px-1 rounded">{params}</code> 作为参数占位符
-          </p>
-        </div>
-
-        <!-- 命令后缀 -->
-        <div class="space-y-2">
-          <Label for="commandSuffix">命令后缀</Label>
-          <Input
-            id="commandSuffix"
-            v-model="formData.command_suffix"
-            placeholder='例如：> output.log 2>&1'
-            :disabled="loading"
-          />
-          <p class="text-xs text-muted-foreground">
-            可选：在命令后添加重定向、管道等操作
-          </p>
         </div>
 
         <DialogFooter>
@@ -130,9 +87,6 @@ const projectStore = useProjectStore();
 const formData = ref({
   name: "",
   description: "",
-  command_prefix: "",
-  command_template: "",
-  command_suffix: "",
 });
 
 /** 加载状态 */
@@ -140,8 +94,7 @@ const loading = ref(false);
 
 /** 表单是否有效 */
 const isFormValid = computed(() => {
-  return formData.value.name.trim().length > 0
-    && formData.value.command_template.trim().length > 0;
+  return formData.value.name.trim().length > 0;
 });
 
 /** 监听对话框打开/关闭，初始化/重置表单 */
@@ -151,9 +104,6 @@ watch(() => props.open, (isOpen) => {
     formData.value = {
       name: props.form.name,
       description: props.form.description || "",
-      command_prefix: props.form.command_prefix || "",
-      command_template: props.form.command_template || "",
-      command_suffix: props.form.command_suffix || "",
     };
   }
 });
@@ -167,9 +117,6 @@ async function handleSubmit() {
     await projectStore.updateForm(props.form.id, {
       name: formData.value.name.trim(),
       description: formData.value.description.trim(),
-      command_prefix: formData.value.command_prefix.trim(),
-      command_template: formData.value.command_template.trim(),
-      command_suffix: formData.value.command_suffix.trim(),
     });
 
     // 成功后关闭对话框并通知父组件

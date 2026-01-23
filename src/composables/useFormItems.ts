@@ -15,9 +15,10 @@ export function useFormItems() {
 
   /**
    * 添加新表单项
+   * @param itemType - 表单项类型（"Command" 或 "Parameter"，默认为 "Parameter"）
    */
-  async function addFormItem() {
-    await projectStore.addFormItem();
+  async function addFormItem(itemType?: "Command" | "Parameter") {
+    await projectStore.addFormItem(itemType);
   }
 
   /**

@@ -23,28 +23,16 @@
     <!-- 内容区 -->
     <ScrollArea class="flex-1">
       <div class="p-6 space-y-6">
-        <!-- 命令模板 -->
-        <Card v-if="form.command_template">
-          <CardHeader>
-            <CardTitle class="text-sm font-medium">命令模板</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <code class="block bg-muted p-3 rounded text-sm font-mono">
-              {{ form.command_template }}
-            </code>
-          </CardContent>
-        </Card>
-
         <!-- 表单项列表 -->
         <Card>
           <CardHeader>
             <CardTitle class="text-sm font-medium">
-              参数项 ({{ form.items.length }})
+              表单项 ({{ form.items.length }})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div v-if="form.items.length === 0" class="text-center py-8 text-muted-foreground">
-              暂无参数项
+              暂无表单项
             </div>
             <div v-else class="space-y-3">
               <div
@@ -52,39 +40,66 @@
                 :key="item.id"
                 :class="[
                   'rounded border p-3',
-                  !item.enabled && 'opacity-50'
+                  !item.enabled && 'opacity-50',
+                  item.item_type === 'Command' && 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
                 ]"
               >
                 <div class="flex items-center justify-between">
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span
-                        :class="[
-                          'font-mono text-sm',
-                          item.enabled ? 'text-foreground' : 'text-muted-foreground'
-                        ]"
+                    <!-- 命令项 -->
+                    <template v-if="item.item_type === 'Command'">
+                      <div class="flex items-center gap-2">
+                        <TerminalIcon class="h-4 w-4 text-blue-600" />
+                        <span
+                          :class="[
+                            'font-mono text-sm font-medium',
+                            item.enabled ? 'text-foreground' : 'text-muted-foreground'
+                          ]"
+                        >
+                          {{ item.content || '(空命令)' }}
+                        </span>
+                      </div>
+                      <div
+                        v-if="item.use_dropdown && item.dropdown_options.length > 0"
+                        class="text-xs text-muted-foreground mt-1"
                       >
-                        {{ item.param_name }}
-                      </span>
-                      <Badge
-                        :variant="getParamStyleVariant(item.param_style)"
-                        class="text-xs"
+                        可选值: {{ item.dropdown_options.join(", ") }}
+                      </div>
+                    </template>
+
+                    <!-- 参数项 -->
+                    <template v-else>
+                      <div class="flex items-center gap-2">
+                        <SlidersIcon class="h-4 w-4" />
+                        <span
+                          v-if="item.param_style !== 'ValueOnly'"
+                          :class="[
+                            'font-mono text-sm',
+                            item.enabled ? 'text-foreground' : 'text-muted-foreground'
+                          ]"
+                        >
+                          {{ item.param_name || '(未命名)' }}
+                        </span>
+                        <Badge
+                          :variant="getParamStyleVariant(item.param_style)"
+                          class="text-xs"
+                        >
+                          {{ getParamStyleLabel(item.param_style) }}
+                        </Badge>
+                      </div>
+                      <div
+                        v-if="item.content"
+                        class="text-sm text-muted-foreground mt-1"
                       >
-                        {{ getParamStyleLabel(item.param_style) }}
-                      </Badge>
-                    </div>
-                    <div
-                      v-if="item.param_value"
-                      class="text-sm text-muted-foreground mt-1 truncate"
-                    >
-                      值: {{ item.param_value }}
-                    </div>
-                    <div
-                      v-if="item.use_dropdown && item.dropdown_options.length > 0"
-                      class="text-xs text-muted-foreground mt-1"
-                    >
-                      可选值: {{ item.dropdown_options.join(", ") }}
-                    </div>
+                        值: {{ item.content }}
+                      </div>
+                      <div
+                        v-if="item.use_dropdown && item.dropdown_options.length > 0"
+                        class="text-xs text-muted-foreground mt-1"
+                      >
+                        可选值: {{ item.dropdown_options.join(", ") }}
+                      </div>
+                    </template>
                   </div>
                   <div class="ml-2">
                     <Switch :checked="item.enabled" disabled class="pointer-events-none" />
@@ -105,7 +120,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { EditIcon } from "lucide-vue-next";
+import { EditIcon, TerminalIcon, SlidersIcon } from "lucide-vue-next";
 import type { Form, ParamStyle } from "@/types/bindings";
 
 /** 组件属性 */
@@ -133,12 +148,12 @@ function formatTime(dateStr: string): string {
 /** 获取参数风格标签 */
 function getParamStyleLabel(style: ParamStyle): string {
   switch (style) {
-    case "Argparse":
-      return "Argparse";
-    case "Hydra":
-      return "Hydra";
-    case "Positional":
-      return "位置参数";
+    case "KeyValue":
+      return "--key value";
+    case "EqualValue":
+      return "key=value";
+    case "ValueOnly":
+      return "仅值";
     default:
       return "未知";
   }
@@ -147,11 +162,11 @@ function getParamStyleLabel(style: ParamStyle): string {
 /** 获取参数风格 Badge 变体 */
 function getParamStyleVariant(style: ParamStyle): "default" | "secondary" {
   switch (style) {
-    case "Argparse":
+    case "KeyValue":
       return "default";
-    case "Hydra":
+    case "EqualValue":
       return "secondary";
-    case "Positional":
+    case "ValueOnly":
       return "secondary";
     default:
       return "secondary";

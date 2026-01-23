@@ -61,12 +61,27 @@
       <div class="px-6 py-3 border-b bg-card shrink-0">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-medium">
-            参数项 ({{ form.items.length }})
+            表单项 ({{ form.items.length }})
           </h3>
-          <Button size="sm" @click="handleAddItem">
-            <PlusIcon class="h-4 w-4 mr-1" />
-            添加参数
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button size="sm">
+                <PlusIcon class="h-4 w-4 mr-1" />
+                添加项
+                <ChevronDownIcon class="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem @click="handleAddItem('Parameter')">
+                <SlidersIcon class="h-4 w-4 mr-2" />
+                添加参数
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="handleAddItem('Command')">
+                <TerminalIcon class="h-4 w-4 mr-2" />
+                添加命令
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -92,10 +107,26 @@
               <div class="p-3 bg-muted rounded-full">
                 <PlusIcon class="h-6 w-6" />
               </div>
-              <p class="text-sm">暂无参数项</p>
-              <Button variant="outline" size="sm" @click="handleAddItem">
-                添加第一个参数
-              </Button>
+              <p class="text-sm">暂无表单项</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="outline" size="sm">
+                    <PlusIcon class="h-4 w-4 mr-1" />
+                    添加第一项
+                    <ChevronDownIcon class="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem @click="handleAddItem('Parameter')">
+                    <SlidersIcon class="h-4 w-4 mr-2" />
+                    添加参数
+                  </DropdownMenuItem>
+                  <DropdownMenuItem @click="handleAddItem('Command')">
+                    <TerminalIcon class="h-4 w-4 mr-2" />
+                    添加命令
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -116,7 +147,13 @@ import Sortable from "sortablejs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { EditIcon, CopyIcon, PlusIcon } from "lucide-vue-next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon } from "lucide-vue-next";
 import { useCommandPreview } from "@/composables/useCommandPreview";
 import { useFormItems } from "@/composables/useFormItems";
 import FormItemEditor from "./FormItemEditor.vue";
@@ -183,10 +220,11 @@ onBeforeUnmount(() => {
 });
 
 /**
- * 添加新参数
+ * 添加新表单项
+ * @param itemType - 表单项类型（"Command" 或 "Parameter"）
  */
-async function handleAddItem() {
-  await addFormItem();
+async function handleAddItem(itemType: "Command" | "Parameter" = "Parameter") {
+  await addFormItem(itemType);
 }
 
 /**
