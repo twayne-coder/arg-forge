@@ -8,14 +8,17 @@
     ]"
   >
     <!-- 拖拽手柄 -->
-    <div class="drag-handle cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+    <div
+      class="drag-handle cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+      @mousedown.stop
+    >
       <GripVerticalIcon class="h-5 w-5" />
     </div>
 
     <!-- 启用开关 -->
     <Switch
-      :checked="item.enabled"
-      @update:checked="handleUpdate('enabled', $event)"
+      :model-value="item.enabled"
+      @update:model-value="handleUpdate('enabled', $event)"
       class="shrink-0"
     />
 
@@ -123,6 +126,18 @@
       </div>
     </template>
 
+    <!-- 下拉选项按钮 -->
+    <Button
+      v-if="item.item_type === 'Parameter' && item.use_dropdown"
+      variant="ghost"
+      size="sm"
+      @click="$emit('open-dropdown-options', item)"
+      class="shrink-0"
+      title="管理下拉选项"
+    >
+      <SettingsIcon class="h-4 w-4" />
+    </Button>
+
     <!-- 下拉模式切换按钮（仅参数项显示） -->
     <Button
       v-if="item.item_type === 'Parameter'"
@@ -136,18 +151,6 @@
       title="切换下拉模式"
     >
       <ListIcon class="h-4 w-4" />
-    </Button>
-
-    <!-- 下拉选项按钮 -->
-    <Button
-      v-if="item.item_type === 'Parameter' && item.use_dropdown"
-      variant="ghost"
-      size="sm"
-      @click="$emit('open-dropdown-options', item)"
-      class="shrink-0"
-      title="管理下拉选项"
-    >
-      <SettingsIcon class="h-4 w-4" />
     </Button>
 
     <!-- 删除按钮 -->
