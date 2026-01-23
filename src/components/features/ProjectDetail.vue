@@ -256,39 +256,69 @@ async function handleProjectUpdated() {
 </script>
 
 <style scoped>
-/* 第一步：清除 splitpanes 默认的伪元素（必须在最前面） */
-:deep(.splitpanes__splitter)::before,
-:deep(.splitpanes__splitter)::after {
-  display: none !important;
-}
+/* ========== 分割线优化：分离布局与交互 ========== */
 
-/* 第二步：设置分割器交互区域 */
+/* 分割器在布局中只占 1px（不影响 flex 计算） */
 :deep(.splitpanes__splitter) {
-  background-color: transparent;
-  width: 8px !important;
-  min-width: 8px !important;
-  cursor: col-resize;
+  width: 1px !important;
+  min-width: 1px !important;
+  background-color: hsl(var(--border));
   position: relative;
+  cursor: default;
+  z-index: 10;
+  transition: background-color 0.2s ease;
 }
 
-/* 第三步：重新定义 ::before 创建视觉线条 */
+/* 透明伪元素扩展点击热区：左右各 4px，总共 9px */
 :deep(.splitpanes__splitter)::before {
-  display: block !important;
   content: '';
   position: absolute;
-  left: 0;
-  width: 0;
+  top: 0;
+  left: -4px; /* 向左扩展 4px */
+  width: 9px; /* 左 4px + 自身 1px + 右 4px */
   height: 100%;
-  border-left: 1px solid hsl(var(--border));
   background-color: transparent;
-  transition: border-color 0.2s;
+  cursor: col-resize; /* 热区显示拖拽光标 */
+  z-index: 1;
 }
 
-/* 悬浮效果 */
-:deep(.splitpanes__splitter:hover)::before {
-  border-left: 1px solid hsl(var(--primary) / 0.5);
+/* 可选：悬浮时的中心指示器（提升视觉反馈） */
+:deep(.splitpanes__splitter)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 40px;
+  background-color: hsl(var(--primary));
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease, width 0.2s ease;
+  pointer-events: none; /* 不干扰交互 */
+  z-index: 2;
 }
 
+/* 悬浮效果：背景高亮 + 指示器显示 */
+:deep(.splitpanes__splitter:hover) {
+  background-color: hsl(var(--primary) / 0.3);
+}
+
+:deep(.splitpanes__splitter:hover)::after {
+  opacity: 0.8;
+}
+
+/* 拖拽状态（需要 JS 配合添加 dragging 类） */
+:deep(.splitpanes__splitter.dragging) {
+  background-color: hsl(var(--primary) / 0.5);
+}
+
+:deep(.splitpanes__splitter.dragging)::after {
+  opacity: 1;
+  width: 5px;
+}
+
+/* ========== 面板样式 ========== */
 .form-list-panel,
 .form-detail-panel {
   overflow: hidden;
