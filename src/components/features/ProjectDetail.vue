@@ -36,54 +36,58 @@
     </header>
 
     <!-- 分割器布局 -->
-    <div class="split-container flex flex-1 overflow-hidden">
-      <!-- 左侧: 表单列表 (30%) -->
-      <aside class="form-list-panel w-[30%] min-w-[250px] border-r bg-card flex flex-col">
-        <div class="p-4 border-b">
-          <div class="flex items-center justify-between">
-            <h2 class="font-medium">表单列表</h2>
-            <Button size="sm" @click="openCreateFormDialog">
-              <PlusIcon class="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <ScrollArea class="flex-1">
-          <div class="p-2 space-y-1">
-            <FormListItem
-              v-for="form in forms"
-              :key="form.id"
-              :form="form"
-              :active="currentFormId === form.id"
-              @click="selectForm(form.id)"
-            />
-            <div
-              v-if="forms.length === 0"
-              class="text-center py-8 text-sm text-muted-foreground"
-            >
-              暂无表单
+    <Splitpanes class="h-full">
+      <!-- 左侧: 表单列表 -->
+      <Pane :size="30" :min-size="15" :max-size="50">
+        <aside class="form-list-panel h-full bg-card flex flex-col">
+          <div class="p-4 border-b">
+            <div class="flex items-center justify-between">
+              <h2 class="font-medium">表单列表</h2>
+              <Button size="sm" @click="openCreateFormDialog">
+                <PlusIcon class="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        </ScrollArea>
-      </aside>
+          <ScrollArea class="flex-1">
+            <div class="p-2 space-y-1">
+              <FormListItem
+                v-for="form in forms"
+                :key="form.id"
+                :form="form"
+                :active="currentFormId === form.id"
+                @click="selectForm(form.id)"
+              />
+              <div
+                v-if="forms.length === 0"
+                class="text-center py-8 text-sm text-muted-foreground"
+              >
+                暂无表单
+              </div>
+            </div>
+          </ScrollArea>
+        </aside>
+      </Pane>
 
-      <!-- 右侧: 表单详情 (70%) -->
-      <main class="form-detail-panel flex-1 bg-background">
-        <FormDetailEditor
-          v-if="currentForm"
-          :form="currentForm"
-          @edit="openEditFormDialog"
-        />
-        <div
-          v-else
-          class="h-full flex items-center justify-center text-muted-foreground"
-        >
-          <div class="text-center">
-            <FileTextIcon class="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p class="text-sm">选择一个表单查看详情</p>
+      <!-- 右侧: 表单详情 -->
+      <Pane :size="70" :min-size="40">
+        <main class="form-detail-panel h-full bg-background">
+          <FormDetailEditor
+            v-if="currentForm"
+            :form="currentForm"
+            @edit="openEditFormDialog"
+          />
+          <div
+            v-else
+            class="h-full flex items-center justify-center text-muted-foreground"
+          >
+            <div class="text-center">
+              <FileTextIcon class="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p class="text-sm">选择一个表单查看详情</p>
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </Pane>
+    </Splitpanes>
 
     <!-- 创建表单对话框 -->
     <CreateFormDialog
@@ -112,6 +116,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { Splitpanes, Pane } from "splitpanes";
+import "splitpanes/dist/splitpanes.css";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -250,18 +256,41 @@ async function handleProjectUpdated() {
 </script>
 
 <style scoped>
-.split-container {
-  /* 减去标题栏和头部的高度 */
-  height: calc(100vh - 120px);
+/* 第一步：清除 splitpanes 默认的伪元素（必须在最前面） */
+:deep(.splitpanes__splitter)::before,
+:deep(.splitpanes__splitter)::after {
+  display: none !important;
 }
 
-.form-list-panel {
-  /* 防止内容溢出 */
-  overflow: hidden;
+/* 第二步：设置分割器交互区域 */
+:deep(.splitpanes__splitter) {
+  background-color: transparent;
+  width: 8px !important;
+  min-width: 8px !important;
+  cursor: col-resize;
+  position: relative;
 }
 
+/* 第三步：重新定义 ::before 创建视觉线条 */
+:deep(.splitpanes__splitter)::before {
+  display: block !important;
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 100%;
+  border-left: 1px solid hsl(var(--border));
+  background-color: transparent;
+  transition: border-color 0.2s;
+}
+
+/* 悬浮效果 */
+:deep(.splitpanes__splitter:hover)::before {
+  border-left: 1px solid hsl(var(--primary) / 0.5);
+}
+
+.form-list-panel,
 .form-detail-panel {
-  /* 防止内容溢出 */
   overflow: hidden;
 }
 </style>
