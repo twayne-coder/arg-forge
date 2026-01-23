@@ -7,14 +7,15 @@
 
 ## 一、项目概要
 
-ArgForge 是一个桌面应用，让用户通过可视化表单界面配置命令行参数，支持多种参数风格（Argparse/Hydra/Positional），并实时预览生成的命令。
+ArgForge 是一个桌面应用，让用户通过可视化表单界面配置命令行参数，支持多种参数风格，并实时预览生成的命令。用户可以完全自由地组织命令和参数的顺序。
 
 **核心功能**：
 - 项目管理（创建/编辑/删除/复制）
-- 表单配置（命令模板 + 参数项）
+- 表单配置（表单项管理）
+- 表单项类型（命令/参数）
 - 参数风格切换（`--key value` / `key=value` / `value`）
-- 下拉选择模式（参数值预设选项）
-- 拖拽排序（表单项重排）
+- 下拉选择模式（预设选项）
+- 拖拽排序（完全自由重排）
 - 实时命令预览
 
 ---
@@ -48,7 +49,7 @@ ArgForge 是一个桌面应用，让用户通过可视化表单界面配置命�
 
 | 模块 | 职责 | 关键文件 |
 |------|------|---------|
-| **Models** | 数据结构定义 | `models/project.rs` (Project/Form/FormItem/ParamStyle) |
+| **Models** | 数据结构定义 | `models/project.rs` (Project/Form/FormItem/ItemType/ParamStyle) |
 | **Services** | 业务逻辑 | `services/storage.rs` (文件存储)<br>`services/command.rs` (命令生成) |
 | **Commands** | Tauri API | `commands/project.rs` (项目 CRUD)<br>`commands/form.rs` (表单 CRUD)<br>`commands/command_gen.rs` (命令生成) |
 | **Error** | 统一错误 | `error.rs` (thiserror 定义 AppError) |
@@ -81,27 +82,33 @@ Project {
 
 Form {
     id: UUID,
-    project_id: UUID,
     name: String,
-    command_template: String,  // 支持 {params} 占位符
+    description: String,
     sort_order: i32,
+    updated_at: DateTime,
     items: Vec<FormItem>
 }
 
 FormItem {
     id: UUID,
-    param_name: String,        // 参数名
-    param_value: String,       // 参数值
-    param_style: ParamStyle,   // Argparse/Hydra/Positional
+    item_type: ItemType,           // Command 或 Parameter
+    content: String,                // 统一内容字段
+    param_name: String,             // 仅 Parameter 类型使用
     enabled: bool,
-    use_dropdown: bool,        // 是否使用下拉选择
+    param_style: ParamStyle,        // 仅 Parameter 类型使用
+    use_dropdown: bool,
     dropdown_options: Vec<String>
 }
 
+enum ItemType {
+    Command,     // 命令项（如 "python train.py"）
+    Parameter,   // 参数项（需要格式化）
+}
+
 enum ParamStyle {
-    Argparse,    // --key value
-    Hydra,       // key=value
-    Positional   // value
+    KeyValue,     // --key value
+    EqualValue,   // key=value
+    ValueOnly,    // value
 }
 ```
 
@@ -121,20 +128,20 @@ duplicate_project(id: Uuid) -> Project  // 深拷贝
 
 ### 表单管理 (9个)
 ```rust
-create_form(FormConfig) -> Form
-update_form(Form) -> Form
-delete_form(id: Uuid) -> ()
-add_form_item(form_id: Uuid, item: FormItem) -> FormItem
-delete_form_item(item_id: Uuid) -> ()
-update_form_item(FormItem) -> FormItem
-reorder_form_items(form_id: Uuid, item_ids: Vec<Uuid>) -> ()
-update_dropdown_options(item_id: Uuid, options: Vec<String>) -> ()
-toggle_dropdown_mode(item_id: Uuid, use_dropdown: bool) -> ()
+create_form(project_id, name, description) -> Form
+update_form(project_id, form_id, name, description) -> Form
+delete_form(project_id, form_id) -> ()
+add_form_item(project_id, form_id, item_type: Option<String>) -> FormItem
+delete_form_item(project_id, form_id, item_id) -> ()
+update_form_item(project_id, form_id, item_id, field_name, value) -> Form
+reorder_form_items(project_id, form_id, old_index, new_index) -> ()
+update_dropdown_options(project_id, form_id, item_id, options) -> ()
+toggle_dropdown_mode(project_id, form_id, item_id, use_dropdown) -> ()
 ```
 
 ### 命令生成 (1个)
 ```rust
-generate_command(form_id: Uuid) -> String
+generate_command(project_id, form_id) -> String
 ```
 
 ---
@@ -145,15 +152,18 @@ generate_command(form_id: Uuid) -> String
 
 ```typescript
 // ✅ 正确：通过 API 层封装
-// src/api/project.ts
+// src/api/form.ts
 import { invoke } from "@/lib/tauri";
 
-export async function createProject(
+export async function createForm(
+  projectId: string,
   name: string,
   description: string
-): Promise<Project> {
-  return await invoke("create_project", {
-    config: { name, description },
+): Promise<Form> {
+  return await invoke("create_form", {
+    projectId,
+    name,
+    description,
   });
 }
 ```
@@ -161,7 +171,7 @@ export async function createProject(
 ```typescript
 // ❌ 错误：组件内直接调用 invoke
 import { invoke } from "@tauri-apps/api/core";
-invoke("create_project", { config });
+invoke("create_form", { projectId, name, description });
 ```
 
 ### 2. 组件开发模式
@@ -170,7 +180,7 @@ invoke("create_project", { config });
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useProjectStore } from "@/stores/project";
-import { createProject } from "@/api/project";
+import { createForm } from "@/api/form";
 
 const store = useProjectStore();
 const name = ref("");
@@ -282,15 +292,35 @@ fs::copy(&current_path, &backup_path)?;
 ### 命令生成逻辑
 ```rust
 // services/command.rs
-// 1. 过滤禁用和空值参数
-// 2. 按 param_style 格式化
-// 3. 替换 {params} 占位符
+// 1. 过滤 enabled=true 且 content 非空的项
+// 2. 根据 item_type 分支处理：
+//    - Command: 直接使用 content
+//    - Parameter: 根据 param_style 格式化
+// 3. 用空格拼接所有部分
 ```
 
 ### 拖拽排序
 ```typescript
 // 前端使用 SortableJS
 // 后端提供 reorder_form_items() command
+// 支持命令和参数混合排序
+```
+
+### 表单项类型区分
+```typescript
+// 命令项（Command）
+item_type === 'Command'
+- 蓝色背景（bg-blue-50 dark:bg-blue-950/20）
+- 仅需 content 字段
+- 支持下拉选项
+
+// 参数项（Parameter）
+item_type === 'Parameter'
+- 默认样式
+- 根据 param_style 显示：
+  - KeyValue: --key value（需要 param_name）
+  - EqualValue: key=value（需要 param_name）
+  - ValueOnly: value（隐藏 param_name）
 ```
 
 ---
