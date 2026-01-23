@@ -7,7 +7,7 @@
     ]"
     @click="$emit('click')"
   >
-    <div class="flex items-start justify-between gap-2">
+    <div class="flex items-center justify-between gap-2">
       <div class="flex-1 min-w-0">
         <h3
           :class="[
@@ -17,11 +17,8 @@
         >
           {{ form.name }}
         </h3>
-        <p
-          v-if="form.description"
-          class="text-xs text-muted-foreground truncate mt-0.5"
-        >
-          {{ form.description }}
+        <p class="text-xs text-muted-foreground mt-0.5">
+          {{ form.items.length }} 项
         </p>
       </div>
       <div class="text-xs text-muted-foreground whitespace-nowrap">
