@@ -72,6 +72,7 @@ function handleDoubleClick() {
       @dblclick="handleDoubleClick"
       data-tauri-drag-region
     >
+      <img src="/icon.png" alt="ArgForge" class="w-4 h-4 pointer-events-none" />
       <div class="text-sm font-medium text-foreground pointer-events-none">ArgForge</div>
     </div>
 
