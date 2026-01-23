@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import { Button } from "@/components/ui/button";
@@ -176,6 +176,12 @@ const editingForm = ref<Form | null>(null);
 /** 初始化 */
 onMounted(async () => {
   await loadProject();
+});
+
+/** 离开页面前清理状态 */
+onBeforeRouteLeave(() => {
+  // 清空当前表单状态，避免状态残留导致闪烁
+  projectStore.setCurrentForm(null);
 });
 
 /** 加载项目数据 */
