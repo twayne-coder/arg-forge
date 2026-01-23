@@ -167,43 +167,33 @@ export const useProjectStore = defineStore("project", () => {
 
   /**
    * 创建表单
-   * @param data - 表单数据 { name, description, command_template }
+   * @param data - 表单数据 { name, description, command_prefix, command_template, command_suffix }
    */
   async function createForm(data: {
     name: string;
     description?: string;
+    command_prefix?: string;
     command_template?: string;
+    command_suffix?: string;
   }) {
     if (!currentProject.value) {
       throw new Error("没有当前项目");
     }
 
     try {
-      // 先创建表单(基础字段)
+      // 一次性创建表单（包含所有字段）
       const newForm = await formApi.createForm(
         currentProject.value.id,
         data.name,
-        data.description || ""
+        data.description || "",
+        data.command_prefix || "",
+        data.command_template || "",
+        data.command_suffix || ""
       );
 
-      // 如果有命令模板,再更新表单
-      if (data.command_template) {
-        const updated = await formApi.updateForm(
-          currentProject.value.id,
-          newForm.id,
-          data.name,
-          data.description || "",
-          data.command_template
-        );
-        // 更新当前项目的表单列表
-        if (currentProject.value) {
-          currentProject.value.forms.push(updated);
-        }
-      } else {
-        // 更新当前项目的表单列表
-        if (currentProject.value) {
-          currentProject.value.forms.push(newForm);
-        }
+      // 更新当前项目的表单列表
+      if (currentProject.value) {
+        currentProject.value.forms.push(newForm);
       }
 
       // 重新加载项目列表以同步
@@ -219,14 +209,16 @@ export const useProjectStore = defineStore("project", () => {
   /**
    * 更新表单
    * @param formId - 表单 ID
-   * @param data - 表单数据 { name, description, command_template }
+   * @param data - 表单数据 { name, description, command_prefix, command_template, command_suffix }
    */
   async function updateForm(
     formId: string,
     data: {
       name: string;
       description?: string;
+      command_prefix?: string;
       command_template?: string;
+      command_suffix?: string;
     }
   ) {
     if (!currentProject.value) {
@@ -239,7 +231,9 @@ export const useProjectStore = defineStore("project", () => {
         formId,
         data.name,
         data.description || "",
-        data.command_template || ""
+        data.command_prefix || "",
+        data.command_template || "",
+        data.command_suffix || ""
       );
 
       // 更新当前项目中的表单
@@ -306,13 +300,9 @@ export const useProjectStore = defineStore("project", () => {
       );
 
       // 更新本地状态
+      // 注意：currentForm 和 currentProject.forms[formIndex] 是同一个引用，
+      // 只需要 push 一次即可
       currentForm.value.items.push(newItem);
-
-      // 同步到 currentProject 中的 forms 列表
-      const formIndex = currentProject.value.forms.findIndex(f => f.id === currentForm.value?.id);
-      if (formIndex !== -1) {
-        currentProject.value.forms[formIndex].items.push(newItem);
-      }
 
       return newItem;
     } catch (error) {
@@ -374,13 +364,9 @@ export const useProjectStore = defineStore("project", () => {
       );
 
       // 更新本地状态
+      // 注意：currentForm 和 currentProject.forms[formIndex] 是同一个引用，
+      // 只需要更新一次即可
       currentForm.value.items = currentForm.value.items.filter(item => item.id !== itemId);
-
-      // 同步到 currentProject 中的 forms 列表
-      const formIndex = currentProject.value.forms.findIndex(f => f.id === currentForm.value?.id);
-      if (formIndex !== -1) {
-        currentProject.value.forms[formIndex].items = currentForm.value.items;
-      }
     } catch (error) {
       console.error("删除表单项失败:", error);
       throw error;

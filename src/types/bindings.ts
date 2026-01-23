@@ -40,8 +40,12 @@ export interface Form {
   sort_order: number;
   /** 最后更新时间（ISO 8601） */
   updated_at: string;
+  /** 命令前缀（在模板前添加） */
+  command_prefix: string;
   /** 命令模板（支持 {params} 占位符） */
   command_template: string;
+  /** 命令后缀（在模板后添加） */
+  command_suffix: string;
   /** 参数项列表 */
   items: FormItem[];
 }
