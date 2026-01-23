@@ -1,25 +1,26 @@
 <template>
   <div class="form-detail-editor h-full flex flex-col">
     <!-- 表单头部 -->
-    <Card class="border-b rounded-b-none shrink-0">
-      <CardHeader>
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <CardTitle class="text-xl">{{ form.name }}</CardTitle>
-            <CardDescription v-if="form.description" class="mt-1">
-              {{ form.description }}
-            </CardDescription>
-          </div>
-          <Button variant="ghost" size="sm" @click="$emit('edit')">
-            <EditIcon class="h-4 w-4" />
-          </Button>
+    <div class="p-6 shrink-0">
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <CardTitle class="text-xl">{{ form.name }}</CardTitle>
+          <CardDescription v-if="form.description" class="mt-1">
+            {{ form.description }}
+          </CardDescription>
         </div>
-      </CardHeader>
-    </Card>
+        <Button variant="ghost" size="sm" @click="$emit('edit')">
+          <EditIcon class="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+
+    <!-- 分隔线 -->
+    <Separator class="shrink-0" />
 
     <!-- 命令预览 -->
-    <Card class="border-b rounded-b-none shrink-0">
-      <CardHeader>
+    <div class="shrink-0">
+      <div class="px-6 py-4">
         <div class="flex items-center justify-between">
           <CardTitle class="text-sm font-medium">命令预览</CardTitle>
           <Button
@@ -33,26 +34,29 @@
             复制
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
-        <code
-          v-if="commandPreview"
-          class="block bg-muted p-3 rounded text-sm font-mono break-all"
-        >
-          {{ commandPreview }}
-        </code>
-        <div
-          v-else
-          class="text-sm text-muted-foreground text-center py-2"
-        >
-          添加参数后自动生成命令
+        <div class="mt-3">
+          <code
+            v-if="commandPreview"
+            class="block bg-muted p-3 text-sm font-mono break-all"
+          >
+            {{ commandPreview }}
+          </code>
+          <div
+            v-else
+            class="text-sm text-muted-foreground text-center py-2"
+          >
+            添加参数后自动生成命令
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
+
+    <!-- 分隔线 -->
+    <Separator class="shrink-0" />
 
     <!-- 参数列表 -->
     <div class="flex-1 overflow-hidden flex flex-col">
-      <div class="px-6 py-3 border-b bg-card shrink-0">
+      <div class="px-6 py-3 bg-card shrink-0">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-medium">
             表单项 ({{ form.items.length }})
@@ -138,7 +142,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import Sortable from "sortablejs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
