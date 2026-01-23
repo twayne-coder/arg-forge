@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Minus, Square, Maximize2, X } from 'lucide-vue-next';
 import * as windowApi from '@/api/window';
+import ThemeToggle from './ThemeToggle.vue';
 
 // 状态管理
 const isReady = ref(false);
@@ -78,6 +79,9 @@ function handleDoubleClick() {
 
     <!-- 右侧：窗口控制按钮（排除拖动） -->
     <div class="flex h-full" data-tauri-drag-region="false">
+      <!-- 主题切换按钮 -->
+      <ThemeToggle />
+
       <button
         @click.stop="minimize"
         class="flex h-full w-11 items-center justify-center text-foreground/80 hover:bg-muted hover:text-foreground"
