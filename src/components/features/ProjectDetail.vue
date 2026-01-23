@@ -11,7 +11,7 @@
         <div class="flex items-center gap-2">
           <div>
             <div class="flex items-center gap-1">
-              <h1 class="text-lg font-semibold">{{ project?.name || "加载中..." }}</h1>
+              <h1 class="text-lg font-semibold">{{ project?.name }}</h1>
               <TooltipProvider v-if="project?.description">
                 <Tooltip>
                   <TooltipTrigger as-child>
