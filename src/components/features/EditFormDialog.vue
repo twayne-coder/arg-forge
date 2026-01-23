@@ -106,7 +106,7 @@ watch(() => props.open, (isOpen) => {
       description: props.form.description || "",
     };
   }
-});
+}, { immediate: true });  // 立即执行，确保组件创建时填充数据
 
 /** 处理表单提交 */
 async function handleSubmit() {
