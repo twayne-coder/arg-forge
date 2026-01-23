@@ -35,14 +35,8 @@
         </div>
       </CardHeader>
       <CardContent>
-        <div
-          v-if="isGenerating"
-          class="text-sm text-muted-foreground animate-pulse"
-        >
-          生成中...
-        </div>
         <code
-          v-else-if="commandPreview"
+          v-if="commandPreview"
           class="block bg-muted p-3 rounded text-sm font-mono break-all"
         >
           {{ commandPreview }}
@@ -174,7 +168,7 @@ defineEmits<{
 const { addFormItem, deleteFormItem, reorderFormItems } = useFormItems();
 
 /** 命令预览 */
-const { commandPreview, isGenerating } = useCommandPreview();
+const { commandPreview } = useCommandPreview();
 
 /** 列表 DOM 引用 */
 const listRef = ref<HTMLElement | null>(null);
