@@ -119,6 +119,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   Dialog,
   DialogContent,
@@ -154,6 +155,10 @@ const emit = defineEmits<{
 
 /** 项目 store */
 const projectStore = useProjectStore();
+
+/** 路由 */
+const route = useRoute();
+const router = useRouter();
 
 /** 表单数据 */
 const formData = ref({
@@ -243,6 +248,11 @@ async function handleDelete() {
     showDeleteConfirm.value = false;
     emit("update:open", false);
     emit("success");
+
+    // 如果当前在项目详情页且删除的是当前项目，则返回首页
+    if (route.name === 'project-detail' && route.params.id === props.project.id) {
+      router.push('/');
+    }
   } catch (error) {
     console.error("删除项目失败:", error);
     // TODO: 显示错误提示
