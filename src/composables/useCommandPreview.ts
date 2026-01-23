@@ -19,9 +19,6 @@ export function useCommandPreview() {
   /** 生成的命令字符串 */
   const commandPreview = ref("");
 
-  /** 是否正在生成命令 */
-  const isGenerating = ref(false);
-
   /** 当前项目 ID */
   const projectId = computed(() => projectStore.currentProject?.id);
 
@@ -38,13 +35,10 @@ export function useCommandPreview() {
     }
 
     try {
-      isGenerating.value = true;
       commandPreview.value = await generateCommand(projectId.value, formId.value);
     } catch (error) {
       console.error("生成命令失败:", error);
       commandPreview.value = "生成失败";
-    } finally {
-      isGenerating.value = false;
     }
   }, 300); // 300ms 防抖
 
@@ -61,7 +55,6 @@ export function useCommandPreview() {
 
   return {
     commandPreview,
-    isGenerating,
     generateCommand: generateCommandDebounced,
   };
 }
