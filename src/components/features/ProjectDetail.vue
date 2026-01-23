@@ -8,11 +8,25 @@
           返回
         </Button>
         <Separator orientation="vertical" class="h-6" />
-        <div>
-          <h1 class="text-lg font-semibold">{{ project?.name || "加载中..." }}</h1>
-          <p v-if="project" class="text-xs text-muted-foreground">
-            {{ project.forms.length }} 个表单
-          </p>
+        <div class="flex items-center gap-2">
+          <div>
+            <div class="flex items-center gap-1">
+              <h1 class="text-lg font-semibold">{{ project?.name || "加载中..." }}</h1>
+              <TooltipProvider v-if="project?.description">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <InfoIcon class="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-[300px] break-words">
+                    <p>{{ project.description }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p v-if="project" class="text-xs text-muted-foreground">
+              {{ project.forms.length }} 个表单
+            </p>
+          </div>
         </div>
       </div>
       <Button variant="ghost" size="sm" @click="openEditProjectDialog">
@@ -101,7 +115,13 @@ import { useRoute, useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeftIcon, EditIcon, PlusIcon, FileTextIcon } from "lucide-vue-next";
+import { ArrowLeftIcon, EditIcon, PlusIcon, FileTextIcon, InfoIcon } from "lucide-vue-next";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useProjectStore } from "@/stores/project";
 import FormListItem from "./FormListItem.vue";
 import FormDetailEditor from "./FormDetailEditor.vue";
