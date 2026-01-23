@@ -246,6 +246,9 @@ pub async fn update_form_item(
     // 克隆表单用于返回（在保存前）
     let result_form = form.clone();
 
+    // 更新项目时间戳
+    project.touch();
+
     // 保存项目
     storage
         .save_project(&project)
@@ -313,6 +316,12 @@ pub async fn add_form_item(
     // 更新表单时间戳
     form.updated_at = chrono::Utc::now().to_rfc3339();
 
+    // 显式结束 form 借用
+    drop(form);
+
+    // 更新项目时间戳
+    project.touch();
+
     // 保存项目
     storage
         .save_project(&project)
@@ -363,6 +372,12 @@ pub async fn delete_form_item(
 
     // 更新表单时间戳
     form.updated_at = chrono::Utc::now().to_rfc3339();
+
+    // 显式结束 form 借用
+    drop(form);
+
+    // 更新项目时间戳
+    project.touch();
 
     // 保存项目
     storage
@@ -423,6 +438,12 @@ pub async fn reorder_form_items(
     // 更新表单时间戳
     form.updated_at = chrono::Utc::now().to_rfc3339();
 
+    // 显式结束 form 借用
+    drop(form);
+
+    // 更新项目时间戳
+    project.touch();
+
     // 保存项目
     storage
         .save_project(&project)
@@ -477,6 +498,12 @@ pub async fn update_dropdown_options(
 
     // 更新表单时间戳
     form.updated_at = chrono::Utc::now().to_rfc3339();
+
+    // 显式结束 form 借用
+    drop(form);
+
+    // 更新项目时间戳
+    project.touch();
 
     // 保存项目
     storage
@@ -537,6 +564,12 @@ pub async fn toggle_dropdown_mode(
 
     // 更新表单时间戳
     form.updated_at = chrono::Utc::now().to_rfc3339();
+
+    // 显式结束 form 借用
+    drop(form);
+
+    // 更新项目时间戳
+    project.touch();
 
     // 保存项目
     storage
