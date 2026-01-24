@@ -31,10 +31,12 @@ pub async fn create_form(
 ) -> Result<Form, String> {
     with_project_mut(&storage, &project_id, |project| {
         // 创建新表单
-        let mut form = Form::default();
-        form.name = name;
-        form.description = description;
-        form.sort_order = project.forms.len() as i32;
+        let form = Form {
+            name,
+            description,
+            sort_order: project.forms.len() as i32,
+            ..Default::default()
+        };
 
         // 添加到项目
         project.add_form(form.clone());

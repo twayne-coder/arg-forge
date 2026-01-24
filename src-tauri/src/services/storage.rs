@@ -196,7 +196,7 @@ impl StorageService {
             if path.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
-            if path.to_str().map_or(false, |s| s.ends_with(".bak")) {
+            if path.to_str().is_some_and(|s| s.ends_with(".bak")) {
                 continue;
             }
 
@@ -261,7 +261,7 @@ impl StorageService {
             let path = entry.path();
 
             // 删除所有 .bak 文件
-            if path.to_str().map_or(false, |s| s.ends_with(".bak")) {
+            if path.to_str().is_some_and(|s| s.ends_with(".bak")) {
                 let _ = fs::remove_file(&path);
             }
         }
