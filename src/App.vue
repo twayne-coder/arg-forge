@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import TitleBar from "@/components/layout/TitleBar.vue";
+import ToastContainer from "@/components/layout/ToastContainer.vue";
 
 onMounted(() => {
   console.log("===== 应用启动环境检测 =====");
@@ -30,5 +31,8 @@ onMounted(() => {
     <main class="flex-1 overflow-hidden">
       <router-view />
     </main>
+
+    <!-- Toast 容器：全局挂载 -->
+    <ToastContainer />
   </div>
 </template>

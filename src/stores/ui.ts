@@ -5,6 +5,7 @@
 
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import type { Toast, ToastType } from "@/types/toast";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -31,6 +32,9 @@ export const useUiStore = defineStore("ui", () => {
 
   /** 当前打开的对话框类型 */
   const dialogType = ref<"createProject" | "editProject" | "editForm" | null>(null);
+
+  /** Toast 通知列表 */
+  const toasts = ref<Toast[]>([]);
 
   // ========== Actions ==========
 
@@ -120,6 +124,53 @@ export const useUiStore = defineStore("ui", () => {
   }
 
   /**
+   * 显示 Toast 通知
+   * @param message - 消息内容
+   * @param type - 类型（默认 success）
+   * @param duration - 持续时间（默认 1000ms）
+   */
+  function showToast(message: string, type: ToastType = "success", duration: number = 1000) {
+    const id = crypto.randomUUID();
+    const toast: Toast = {
+      id,
+      message,
+      type,
+      duration,
+      createdAt: Date.now(),
+    };
+
+    // 添加到队列头部（最新的在最前）
+    toasts.value.unshift(toast);
+
+    // 调试日志
+    console.log("[Toast] 显示通知:", { id, message, type, duration, totalToasts: toasts.value.length });
+
+    // 自动移除
+    setTimeout(() => {
+      console.log("[Toast] 移除通知:", id);
+      removeToast(id);
+    }, duration);
+  }
+
+  /**
+   * 移除指定 Toast
+   * @param id - Toast ID
+   */
+  function removeToast(id: string) {
+    const index = toasts.value.findIndex((t) => t.id === id);
+    if (index > -1) {
+      toasts.value.splice(index, 1);
+    }
+  }
+
+  /**
+   * 清空所有 Toast
+   */
+  function clearToasts() {
+    toasts.value = [];
+  }
+
+  /**
    * 清空所有状态
    */
   function $reset() {
@@ -130,6 +181,7 @@ export const useUiStore = defineStore("ui", () => {
     isLoading.value = false;
     showDialog.value = false;
     dialogType.value = null;
+    toasts.value = [];
   }
 
   return {
@@ -141,6 +193,7 @@ export const useUiStore = defineStore("ui", () => {
     isLoading,
     showDialog,
     dialogType,
+    toasts,
 
     // Actions
     toggleSidebar,
@@ -151,6 +204,9 @@ export const useUiStore = defineStore("ui", () => {
     setLoading,
     openDialog,
     closeDialog,
+    showToast,
+    removeToast,
+    clearToasts,
     $reset,
   };
 });
