@@ -139,6 +139,7 @@ import {
   TrashIcon,
 } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
+import { useUiStore } from "@/stores/ui";
 import type { Project } from "@/types/bindings";
 
 /** 是否打开对话框 */
@@ -155,6 +156,9 @@ const emit = defineEmits<{
 
 /** 项目 store */
 const projectStore = useProjectStore();
+
+/** UI store */
+const uiStore = useUiStore();
 
 /** 路由 */
 const route = useRoute();
@@ -227,12 +231,14 @@ async function handleDuplicate() {
   try {
     await projectStore.duplicateProject(props.project.id);
 
-    // 成功后关闭对话框并通知父组件
+    // 显示成功提示
+    uiStore.showToast("项目已复制", "success");
+
+    // 成功后关闭对话框（不通知父组件，避免重新加载）
     emit("update:open", false);
-    emit("success");
   } catch (error) {
     console.error("复制项目失败:", error);
-    // TODO: 显示错误提示
+    uiStore.showToast("复制项目失败", "error");
   } finally {
     loading.value = false;
   }

@@ -155,6 +155,7 @@ import {
 import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon } from "lucide-vue-next";
 import { useCommandPreview } from "@/composables/useCommandPreview";
 import { useFormItems } from "@/composables/useFormItems";
+import { useUiStore } from "@/stores/ui";
 import FormItemEditor from "./FormItemEditor.vue";
 import DropdownOptionsDialog from "./DropdownOptionsDialog.vue";
 import type { Form, FormItem } from "@/types/bindings";
@@ -174,6 +175,9 @@ const { addFormItem, deleteFormItem, reorderFormItems } = useFormItems();
 
 /** 命令预览 */
 const { commandPreview } = useCommandPreview();
+
+/** UI 状态管理 */
+const uiStore = useUiStore();
 
 /** 列表 DOM 引用 */
 const listRef = ref<HTMLElement | null>(null);
@@ -259,10 +263,10 @@ async function copyCommand() {
 
   try {
     await navigator.clipboard.writeText(commandPreview.value);
-    // TODO: 显示 toast 提示
-    console.log("命令已复制到剪贴板");
+    uiStore.showToast("命令已复制", "success");
   } catch (error) {
     console.error("复制失败:", error);
+    uiStore.showToast("复制失败", "error");
   }
 }
 </script>

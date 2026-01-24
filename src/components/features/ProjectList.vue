@@ -79,6 +79,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusIcon, FolderOpenIcon, ArrowUpDownIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
+import { useUiStore } from "@/stores/ui";
 import ProjectCard from "./ProjectCard.vue";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";
@@ -89,6 +90,9 @@ const router = useRouter();
 
 /** 项目 store */
 const projectStore = useProjectStore();
+
+/** UI store */
+const uiStore = useUiStore();
 
 /** 是否显示新建对话框 */
 const showCreateDialog = ref(false);
@@ -169,9 +173,10 @@ async function handleDuplicateProject(project: Project) {
   try {
     await projectStore.duplicateProject(project.id);
     await loadProjects();
+    uiStore.showToast("项目已复制", "success");
   } catch (error) {
     console.error("复制项目失败:", error);
-    // TODO: 显示错误提示
+    uiStore.showToast("复制项目失败", "error");
   }
 }
 
