@@ -155,7 +155,7 @@
       variant="ghost"
       size="sm"
       @click="$emit('delete', item.id)"
-      class="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+      class="shrink-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
       title="删除"
     >
       <TrashIcon class="h-4 w-4" />
