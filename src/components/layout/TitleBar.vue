@@ -3,10 +3,15 @@ import { ref, onMounted } from 'vue';
 import { Minus, Square, Maximize2, X } from 'lucide-vue-next';
 import * as windowApi from '@/api/window';
 import ThemeToggle from './ThemeToggle.vue';
+import LocaleToggle from './LocaleToggle.vue';
+import { useI18n } from 'vue-i18n';
 
 // 状态管理
 const isReady = ref(false);
 const isMaximized = ref(false);
+
+// 国际化
+const { t } = useI18n();
 
 onMounted(async () => {
 	// 无论检测结果如何，先尝试初始化状态
@@ -79,13 +84,16 @@ function handleDoubleClick() {
 
     <!-- 右侧：窗口控制按钮（排除拖动） -->
     <div class="flex h-full" data-tauri-drag-region="false">
+      <!-- 语言切换按钮 -->
+      <LocaleToggle />
+
       <!-- 主题切换按钮 -->
       <ThemeToggle />
 
       <button
         @click.stop="minimize"
         class="flex h-full w-11 items-center justify-center text-foreground/80 hover:bg-muted hover:text-foreground"
-        title="最小化"
+        :title="t('window.minimize')"
       >
         <Minus :size="14" />
       </button>
@@ -93,7 +101,7 @@ function handleDoubleClick() {
       <button
         @click.stop="toggleMaximize"
         class="flex h-full w-11 items-center justify-center text-foreground/80 hover:bg-muted hover:text-foreground"
-        :title="isMaximized ? '向下还原' : '最大化'"
+        :title="isMaximized ? t('window.restore') : t('window.maximize')"
       >
         <Maximize2 v-if="isMaximized" :size="14" />
         <Square v-else :size="12" />
@@ -102,7 +110,7 @@ function handleDoubleClick() {
       <button
         @click.stop="close"
         class="flex h-full w-11 items-center justify-center text-foreground/80 hover:bg-destructive hover:text-destructive-foreground"
-        title="关闭"
+        :title="t('window.close')"
       >
         <X :size="14" />
       </button>

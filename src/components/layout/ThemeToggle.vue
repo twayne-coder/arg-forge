@@ -2,12 +2,14 @@
 import { computed } from "vue";
 import { Sun, Moon } from "lucide-vue-next";
 import { useTheme } from "@/composables/useTheme";
+import { useI18n } from "vue-i18n";
 
 const { isDark, toggleTheme } = useTheme();
+const { t } = useI18n();
 
 /** 按钮标题文本 */
 const title = computed(() => {
-	return isDark.value ? "切换到浅色模式" : "切换到深色模式";
+	return isDark.value ? t("theme.switchToLight") : t("theme.switchToDark");
 });
 </script>
 
