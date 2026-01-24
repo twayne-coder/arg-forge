@@ -12,6 +12,17 @@ export type ItemType = "Command" | "Parameter";
 export type ParamStyle = "KeyValue" | "EqualValue" | "ValueOnly";
 
 /**
+ * 表单项字段值类型
+ * 用于 updateFormItem 函数的类型安全
+ */
+export type FormItemFieldValue =
+  | string        // content, param_name
+  | boolean       // enabled, use_dropdown
+  | ItemType      // item_type
+  | ParamStyle    // param_style
+  | string[];     // dropdown_options
+
+/**
  * 表单项（参数项）
  */
 export interface FormItem {
