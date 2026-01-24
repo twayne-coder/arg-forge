@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "predev": "kill-port 1420",
     "dev": "vite",
+    "start": "tauri dev",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
@@ -30,6 +32,7 @@
     "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.23",
+    "kill-port": "^2.0.1",
     "postcss": "^8.5.6",
     "shadcn-vue": "^2.4.3",
     "tailwindcss": "^3.4.19",

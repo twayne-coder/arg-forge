@@ -76,7 +76,7 @@ FormItem {
 pnpm install
 
 # 启动 Tauri 开发模式（推荐）
-pnpm tauri dev
+pnpm start
 
 # 仅启动前端开发服务器
 pnpm dev
@@ -157,4 +157,5 @@ src/
 
 ## 参考文档
 
-详细编码规范请参见：@CLAUDE-RULE.md
+编码规范
+@CLAUDE-RULE.md
