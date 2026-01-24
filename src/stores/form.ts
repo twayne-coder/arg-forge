@@ -4,7 +4,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, triggerRef } from "vue";
+import { ref } from "vue";
 import * as formApi from "@/api/form";
 import { useProjectStore } from "@/stores/project";
 import type { Form, FormItemFieldValue } from "@/types/bindings";
