@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "arg-forge",
+  "productName": "ArgForge",
   "version": "1.0.1",
   "identifier": "com.ctw.arg-forge",
   "build": {
@@ -31,6 +31,15 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "windows": {
+      "nsis": {
+        "languages": [
+          "English",
+          "Chinese"
+        ],
+        "displayLanguageSelector": true
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
