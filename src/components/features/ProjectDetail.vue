@@ -143,14 +143,8 @@ const project = computed(() => projectStore.currentProject);
 /** 表单列表 */
 const forms = computed(() => project.value?.forms || []);
 
-/** 当前表单 ID */
-const currentFormId = computed(() => formStore.currentForm?.id);
-
-/** 当前表单 */
-const currentForm = computed(() => {
-  if (!currentFormId.value) return null;
-  return forms.value.find(f => f.id === currentFormId.value) || null;
-});
+/** 当前表单 - 直接使用 formStore.currentForm */
+const currentForm = computed(() => formStore.currentForm);
 
 /** 是否显示创建表单对话框 */
 const showCreateFormDialog = ref(false);

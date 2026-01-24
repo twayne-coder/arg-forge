@@ -4,8 +4,9 @@
  */
 
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, triggerRef } from "vue";
 import * as formApi from "@/api/form";
+import { useProjectStore } from "@/stores/project";
 import type { Form, FormItemFieldValue } from "@/types/bindings";
 
 export const useFormStore = defineStore("form", () => {
@@ -77,7 +78,30 @@ export const useFormStore = defineStore("form", () => {
       itemType
     );
 
+    // 更新 formStore
     currentForm.value.items.push(newItem);
+
+    // 同步更新 projectStore.currentProject 中的表单
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      const formIndex = projectStore.currentProject.forms.findIndex(
+        f => f.id === currentForm.value!.id
+      );
+      if (formIndex !== -1) {
+        const form = projectStore.currentProject.forms[formIndex];
+        // 创建新的 items 数组引用以触发响应式更新
+        const updatedForm = {
+          ...form,
+          items: [...form.items, newItem]
+        };
+        projectStore.currentProject.forms = [
+          ...projectStore.currentProject.forms.slice(0, formIndex),
+          updatedForm,
+          ...projectStore.currentProject.forms.slice(formIndex + 1)
+        ];
+      }
+    }
+
     return newItem;
   }
 
@@ -102,7 +126,25 @@ export const useFormStore = defineStore("form", () => {
       value
     );
 
+    // 更新 formStore
     currentForm.value = updatedForm;
+
+    // 同步更新 projectStore.currentProject 中的表单
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      const formIndex = projectStore.currentProject.forms.findIndex(
+        f => f.id === updatedForm.id
+      );
+      if (formIndex !== -1) {
+        // 创建新的数组引用以触发响应式更新
+        projectStore.currentProject.forms = [
+          ...projectStore.currentProject.forms.slice(0, formIndex),
+          updatedForm,
+          ...projectStore.currentProject.forms.slice(formIndex + 1)
+        ];
+      }
+    }
+
     return updatedForm;
   }
 
@@ -120,9 +162,31 @@ export const useFormStore = defineStore("form", () => {
       itemId
     );
 
+    // 更新 formStore
     currentForm.value.items = currentForm.value.items.filter(
       item => item.id !== itemId
     );
+
+    // 同步更新 projectStore.currentProject 中的表单
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      const formIndex = projectStore.currentProject.forms.findIndex(
+        f => f.id === currentForm.value!.id
+      );
+      if (formIndex !== -1) {
+        const form = projectStore.currentProject.forms[formIndex];
+        // 创建新的 items 数组引用以触发响应式更新
+        const updatedForm = {
+          ...form,
+          items: form.items.filter(item => item.id !== itemId)
+        };
+        projectStore.currentProject.forms = [
+          ...projectStore.currentProject.forms.slice(0, formIndex),
+          updatedForm,
+          ...projectStore.currentProject.forms.slice(formIndex + 1)
+        ];
+      }
+    }
   }
 
   /**

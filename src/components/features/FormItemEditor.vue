@@ -1,10 +1,10 @@
 <template>
   <div
     :class="[
-      'group flex items-center gap-3 rounded-lg border bg-card p-3 transition-all',
+      'group flex items-center gap-3 rounded-lg border p-3 transition-all',
       'hover:border-primary hover:shadow-sm',
-      !item.enabled && 'opacity-50',
-      item.item_type === 'Command' && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
+      !item.enabled ? 'opacity-60 grayscale bg-muted text-muted-foreground' : 'bg-card',
+      item.item_type === 'Command' && item.enabled && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
     ]"
   >
     <!-- 拖拽手柄 -->
@@ -14,8 +14,9 @@
 
     <!-- 启用开关 -->
     <Switch
-      :model-value="item.enabled"
-      @update:model-value="handleUpdate('enabled', $event)"
+      :checked="item.enabled"
+      @update:checked="(v) => { console.log('[FormItemEditor] Switch @update:checked (deprecated):', v) }"
+      @update:model-value="(v) => { console.log('[FormItemEditor] Switch @update:model-value:', v); handleUpdate('enabled', v) }"
       class="shrink-0"
     />
 
@@ -205,6 +206,8 @@ const { updateFormItem, toggleDropdownMode } = useFormItems();
  * @param value - 新值
  */
 async function handleUpdate(field: string, value: unknown) {
+  console.log("[FormItemEditor] handleUpdate:", { field, value, itemId: props.item.id });
+
   // 将 value 转换为 FormItemFieldValue 类型
   let convertedValue: FormItemFieldValue;
 
@@ -226,7 +229,9 @@ async function handleUpdate(field: string, value: unknown) {
     convertedValue = String(value);
   }
 
+  console.log("[FormItemEditor] 调用 updateFormItem:", convertedValue);
   await updateFormItem(props.item.id, field, convertedValue);
+  console.log("[FormItemEditor] updateFormItem 完成");
 }
 
 /**
