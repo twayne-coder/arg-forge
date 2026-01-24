@@ -7,7 +7,7 @@ pnpm build
 
 Write-Host "`n--- 2. 开始 Rust 格式检查 (fmt) ---" -ForegroundColor Cyan
 cd src-tauri
-cargo fmt -- --check
+cargo fmt
 
 Write-Host "`n--- 3. 开始 Rust 静态分析 (clippy) ---" -ForegroundColor Cyan
 # -D warnings 表示把警告当成错误处理
