@@ -2,20 +2,20 @@
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>编辑项目</DialogTitle>
+        <DialogTitle>{{ $t('project.edit') }}</DialogTitle>
         <DialogDescription>
-          修改项目信息或管理项目
+          {{ $t('project.editDescription') }}
         </DialogDescription>
       </DialogHeader>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <!-- 项目名称 -->
         <div class="space-y-2">
-          <Label for="edit-name">项目名称 <span class="text-destructive">*</span></Label>
+          <Label for="edit-name">{{ $t('project.name') }} <span class="text-destructive">*</span></Label>
           <Input
             id="edit-name"
             v-model="formData.name"
-            placeholder="例如：模型训练配置"
+            :placeholder="$t('project.namePlaceholder')"
             required
             :disabled="loading"
           />
@@ -23,11 +23,11 @@
 
         <!-- 项目描述 -->
         <div class="space-y-2">
-          <Label for="edit-description">项目描述</Label>
+          <Label for="edit-description">{{ $t('project.description') }}</Label>
           <Textarea
             id="edit-description"
             v-model="formData.description"
-            placeholder="简要描述此项目的用途..."
+            :placeholder="$t('project.descriptionPlaceholder')"
             rows="3"
             :disabled="loading"
           />
@@ -41,7 +41,7 @@
           </div>
           <div class="flex items-center gap-1">
             <FolderOpenIcon class="h-4 w-4" />
-            <span>{{ project.forms.length }} 个表单</span>
+            <span>{{ $t('project.formCount', { count: project.forms.length }) }}</span>
           </div>
         </div>
 
@@ -56,7 +56,7 @@
               :disabled="loading"
             >
               <CopyIcon class="h-4 w-4 mr-1" />
-              复制
+              {{ $t('common.duplicate') }}
             </Button>
             <Button
               type="button"
@@ -66,7 +66,7 @@
               :disabled="loading"
             >
               <TrashIcon class="h-4 w-4 mr-1" />
-              删除
+              {{ $t('common.delete') }}
             </Button>
           </div>
 
@@ -77,10 +77,10 @@
             @click="emit('update:open', false)"
             :disabled="loading"
           >
-            取消
+            {{ $t('common.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading || !isFormValid">
-            {{ loading ? "保存中..." : "保存" }}
+            {{ loading ? $t('project.saving') : $t('common.save') }}
           </Button>
         </DialogFooter>
       </form>
@@ -90,9 +90,9 @@
     <Dialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>确认删除</DialogTitle>
+          <DialogTitle>{{ $t('project.deleteConfirm') }}</DialogTitle>
           <DialogDescription>
-            确定要删除项目 "{{ project.name }}" 吗？此操作无法撤销。
+            {{ $t('project.deleteConfirmMessage', { name: project.name }) }}
           </DialogDescription>
         </DialogHeader>
 
@@ -102,14 +102,14 @@
             @click="showDeleteConfirm = false"
             :disabled="loading"
           >
-            取消
+            {{ $t('common.cancel') }}
           </Button>
           <Button
             variant="destructive"
             @click="handleDelete"
             :disabled="loading"
           >
-            {{ loading ? "删除中..." : "确认删除" }}
+            {{ loading ? $t('project.deleting') : $t('project.deleteConfirmButton') }}
           </Button>
         </DialogFooter>
       </DialogContent>

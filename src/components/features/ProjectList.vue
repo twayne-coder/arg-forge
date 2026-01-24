@@ -3,8 +3,8 @@
     <!-- 头部 -->
     <div class="flex items-center justify-between px-6 py-4 border-b">
       <div>
-        <h1 class="text-2xl font-semibold">ArgForge</h1>
-        <p class="text-sm text-muted-foreground">可视化命令配置工具</p>
+        <h1 class="text-2xl font-semibold">{{ $t('project.title') }}</h1>
+        <p class="text-sm text-muted-foreground">{{ $t('project.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-2">
         <Button
@@ -17,7 +17,7 @@
         </Button>
         <Button @click="showCreateDialog = true">
           <PlusIcon class="h-4 w-4 mr-2" />
-          新建项目
+          {{ $t('project.create') }}
         </Button>
       </div>
     </div>
@@ -31,13 +31,13 @@
           class="flex flex-col items-center justify-center py-16 text-center"
         >
           <FolderOpenIcon class="h-16 w-16 text-muted-foreground/50 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">暂无项目</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ $t('project.noProjects') }}</h3>
           <p class="text-sm text-muted-foreground mb-4">
-            创建您的第一个命令配置项目
+            {{ $t('project.noProjectsHint') }}
           </p>
           <Button @click="showCreateDialog = true">
             <PlusIcon class="h-4 w-4 mr-2" />
-            新建项目
+            {{ $t('project.create') }}
           </Button>
         </div>
 
@@ -75,16 +75,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusIcon, FolderOpenIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import { useUiStore } from "@/stores/ui";
-import { useProjectSort } from "@/composables/useProjectSort";
 import ProjectCard from "./ProjectCard.vue";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";
 import type { Project } from "@/types/bindings";
+
+// 国际化
+const { t } = useI18n();
 
 /** 路由 */
 const router = useRouter();
@@ -94,9 +97,6 @@ const projectStore = useProjectStore();
 
 /** UI store */
 const uiStore = useUiStore();
-
-/** 排序配置 */
-const { sortConfig } = useProjectSort();
 
 /** 是否显示新建对话框 */
 const showCreateDialog = ref(false);
@@ -118,15 +118,17 @@ const hasProjects = computed(() => projectStore.hasProjects);
 
 /** 排序按钮文本 */
 const sortButtonText = computed(() => {
-  const { sortBy, order } = sortConfig;
-  const field = sortBy === 'created_at' ? '创建时间' : '修改时间';
-  const direction = order === 'asc' ? '正序' : '降序';
-  return `${field}${direction}`;
+  const { sortBy, order } = projectStore.sortConfig;
+  if (sortBy === 'created_at') {
+    return order === 'asc' ? t('project.sortCreatedAsc') : t('project.sortCreatedDesc');
+  } else {
+    return order === 'asc' ? t('project.sortUpdatedAsc') : t('project.sortUpdatedDesc');
+  }
 });
 
 /** 排序方向图标 */
 const sortDirectionIcon = computed(() => {
-  return sortConfig.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+  return projectStore.sortConfig.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
 });
 
 /** 初始化 */
@@ -174,10 +176,10 @@ async function handleDuplicateProject(project: Project) {
   try {
     await projectStore.duplicateProject(project.id);
     await loadProjects();
-    uiStore.showToast("项目已复制", "success");
+    uiStore.showToast(t('project.duplicateSuccess'), "success");
   } catch (error) {
     console.error("复制项目失败:", error);
-    uiStore.showToast("复制项目失败", "error");
+    uiStore.showToast(t('project.duplicateFailed'), "error");
   }
 }
 

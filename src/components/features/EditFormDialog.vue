@@ -2,20 +2,20 @@
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>编辑表单</DialogTitle>
+        <DialogTitle>{{ $t('form.edit') }}</DialogTitle>
         <DialogDescription>
-          修改表单的基本信息
+          {{ $t('form.editDescription') }}
         </DialogDescription>
       </DialogHeader>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <!-- 表单名称 -->
         <div class="space-y-2">
-          <Label for="name">表单名称 <span class="text-destructive">*</span></Label>
+          <Label for="name">{{ $t('form.name') }} <span class="text-destructive">*</span></Label>
           <Input
             id="name"
             v-model="formData.name"
-            placeholder="例如：训练参数配置"
+            :placeholder="$t('form.namePlaceholder')"
             required
             :disabled="loading"
           />
@@ -23,11 +23,11 @@
 
         <!-- 表单描述 -->
         <div class="space-y-2">
-          <Label for="description">表单描述</Label>
+          <Label for="description">{{ $t('form.description') }}</Label>
           <Textarea
             id="description"
             v-model="formData.description"
-            placeholder="简要描述此表单的用途..."
+            :placeholder="$t('form.descriptionPlaceholder')"
             rows="2"
             :disabled="loading"
           />
@@ -40,10 +40,10 @@
             @click="emit('update:open', false)"
             :disabled="loading"
           >
-            取消
+            {{ $t('common.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading || !isFormValid">
-            {{ loading ? "保存中..." : "保存" }}
+            {{ loading ? $t('project.saving') : $t('common.save') }}
           </Button>
         </DialogFooter>
       </form>

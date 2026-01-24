@@ -2,9 +2,9 @@
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>管理下拉选项</DialogTitle>
+        <DialogTitle>{{ $t('dropdown.title') }}</DialogTitle>
         <DialogDescription>
-          为参数 "{{ item?.param_name }}" 添加或删除预设选项
+          {{ $t('dropdown.description', { name: item?.param_name || '' }) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -19,7 +19,7 @@
             <Input
               :model-value="option"
               @update:model-value="updateOption(index, $event as string)"
-              placeholder="选项值"
+              :placeholder="$t('dropdown.addOption')"
               class="flex-1"
             />
             <Button
@@ -42,33 +42,33 @@
           class="w-full"
         >
           <PlusIcon class="h-4 w-4 mr-2" />
-          添加选项
+          {{ $t('dropdown.addOption') }}
         </Button>
 
         <!-- 快捷填充 -->
         <div class="pt-2 border-t">
-          <p class="text-xs text-muted-foreground mb-2">快捷填充:</p>
+          <p class="text-xs text-muted-foreground mb-2">{{ $t('dropdown.quickFill') }}</p>
           <div class="flex flex-wrap gap-2">
             <Button
               variant="secondary"
               size="sm"
               @click="quickFill(['true', 'false'])"
             >
-              布尔值
+              {{ $t('dropdown.boolean') }}
             </Button>
             <Button
               variant="secondary"
               size="sm"
               @click="quickFill(['0.001', '0.01', '0.1', '1.0'])"
             >
-              学习率
+              {{ $t('dropdown.learningRate') }}
             </Button>
             <Button
               variant="secondary"
               size="sm"
               @click="quickFill(['sgd', 'adam', 'adamw'])"
             >
-              优化器
+              {{ $t('dropdown.optimizer') }}
             </Button>
           </div>
         </div>
@@ -76,10 +76,10 @@
 
       <DialogFooter>
         <Button variant="outline" @click="$emit('update:open', false)">
-          取消
+          {{ $t('common.cancel') }}
         </Button>
         <Button @click="handleSave">
-          保存
+          {{ $t('common.save') }}
         </Button>
       </DialogFooter>
     </DialogContent>

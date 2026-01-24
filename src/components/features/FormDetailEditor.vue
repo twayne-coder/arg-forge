@@ -24,7 +24,7 @@
       <div>
         <div class="px-6 py-4">
           <div class="flex items-center justify-between">
-            <CardTitle class="text-sm font-medium">命令预览</CardTitle>
+            <CardTitle class="text-sm font-medium">{{ $t('command.title') }}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -33,7 +33,7 @@
               class="h-7 px-2"
             >
               <CopyIcon class="h-3.5 w-3.5 mr-1" />
-              复制
+              {{ $t('command.copy') }}
             </Button>
           </div>
           <div class="mt-3">
@@ -47,7 +47,7 @@
               v-else
               class="text-sm text-muted-foreground text-center py-2"
             >
-              添加参数后自动生成命令
+              {{ $t('command.emptyHint') }}
             </div>
           </div>
         </div>
@@ -61,24 +61,24 @@
         <div class="px-6 py-3 bg-card">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-medium">
-              表单项 ({{ form.items.length }})
+              {{ $t('formItem.title') }} ({{ form.items.length }})
             </h3>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button size="sm">
                   <PlusIcon class="h-4 w-4 mr-1" />
-                  添加项
+                  {{ $t('formItem.addItem') }}
                   <ChevronDownIcon class="h-4 w-4 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem @click="handleAddItem('Parameter')">
                   <SlidersIcon class="h-4 w-4 mr-2" />
-                  添加参数
+                  {{ $t('formItem.addParameter') }}
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="handleAddItem('Command')">
                   <TerminalIcon class="h-4 w-4 mr-2" />
-                  添加命令
+                  {{ $t('formItem.addCommand') }}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -106,23 +106,23 @@
               <div class="p-3 bg-muted rounded-full">
                 <PlusIcon class="h-6 w-6" />
               </div>
-              <p class="text-sm">暂无表单项</p>
+              <p class="text-sm">{{ $t('formItem.noItems') }}</p>
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <Button variant="outline" size="sm">
                     <PlusIcon class="h-4 w-4 mr-1" />
-                    添加第一项
+                    {{ $t('formItem.addFirst') }}
                     <ChevronDownIcon class="h-4 w-4 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem @click="handleAddItem('Parameter')">
                     <SlidersIcon class="h-4 w-4 mr-2" />
-                    添加参数
+                    {{ $t('formItem.addParameter') }}
                   </DropdownMenuItem>
                   <DropdownMenuItem @click="handleAddItem('Command')">
                     <TerminalIcon class="h-4 w-4 mr-2" />
-                    添加命令
+                    {{ $t('formItem.addCommand') }}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -142,6 +142,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useI18n } from "vue-i18n";
 import Sortable from "sortablejs";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -159,6 +160,8 @@ import { useUiStore } from "@/stores/ui";
 import FormItemEditor from "./FormItemEditor.vue";
 import DropdownOptionsDialog from "./DropdownOptionsDialog.vue";
 import type { Form, FormItem } from "@/types/bindings";
+
+const { t } = useI18n();
 
 /** 组件属性 */
 defineProps<{
@@ -263,10 +266,10 @@ async function copyCommand() {
 
   try {
     await navigator.clipboard.writeText(commandPreview.value);
-    uiStore.showToast("命令已复制", "success");
+    uiStore.showToast(t('command.copySuccess'), "success");
   } catch (error) {
     console.error("复制失败:", error);
-    uiStore.showToast("复制失败", "error");
+    uiStore.showToast(t('command.copyFailed'), "error");
   }
 }
 </script>

@@ -18,8 +18,8 @@ export const useProjectStore = defineStore("project", () => {
   /** 当前选中的项目 */
   const currentProject = ref<Project | null>(null);
 
-  /** 非响应式排序配置 */
-  let sortConfig: SortConfig = loadSortConfig();
+  /** 响应式排序配置 */
+  const sortConfig = ref<SortConfig>(loadSortConfig());
 
   // ========== 计算属性 ==========
   /** 当前项目的表单列表 */
@@ -28,10 +28,10 @@ export const useProjectStore = defineStore("project", () => {
   /** 排序后的项目列表 */
   const sortedProjects = computed(() => {
     return [...projects.value].sort((a, b) => {
-      const aTime = a[sortConfig.sortBy];
-      const bTime = b[sortConfig.sortBy];
+      const aTime = a[sortConfig.value.sortBy];
+      const bTime = b[sortConfig.value.sortBy];
       const comparison = aTime.localeCompare(bTime);
-      return sortConfig.order === 'asc' ? comparison : -comparison;
+      return sortConfig.value.order === 'asc' ? comparison : -comparison;
     });
   });
 
@@ -45,8 +45,8 @@ export const useProjectStore = defineStore("project", () => {
    * @returns 新的排序配置
    */
   function cycleSortConfigValue() {
-    sortConfig = cycleSort(sortConfig);
-    return sortConfig;
+    sortConfig.value = cycleSort(sortConfig.value);
+    return sortConfig.value;
   }
 
   /**
@@ -165,6 +165,7 @@ export const useProjectStore = defineStore("project", () => {
     // 状态
     projects,
     currentProject,
+    sortConfig,
 
     // 计算属性
     currentForms,
