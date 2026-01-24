@@ -90,4 +90,5 @@ $RECYCLE.BIN/
 
 # ========== Claude Code specific ==========
 .claude/
+.mcp.json
 nul
