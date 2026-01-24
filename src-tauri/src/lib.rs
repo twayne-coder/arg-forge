@@ -14,7 +14,7 @@ pub use services::project_transaction::with_project_mut;
 pub use services::validation::validate_project_id;
 
 use tauri::Manager;
-use tracing_subscriber::{fmt, EnvFilter, prelude::*};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 /// 应用入口点
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -33,14 +33,16 @@ pub fn run() {
             tracing::info!("===== Tauri 应用初始化开始 =====");
 
             // 安全获取应用数据目录
-            let data_dir = app.path().app_data_dir()
+            let data_dir = app
+                .path()
+                .app_data_dir()
                 .map_err(|e| format!("无法获取数据目录: {}", e))?;
             tracing::info!("应用数据目录: {:?}", data_dir);
 
             // 安全初始化存储服务
             tracing::info!("开始初始化存储服务...");
-            let storage = StorageService::new(data_dir)
-                .map_err(|e| format!("无法初始化存储服务: {}", e))?;
+            let storage =
+                StorageService::new(data_dir).map_err(|e| format!("无法初始化存储服务: {}", e))?;
             tracing::info!("✅ 存储服务初始化成功");
 
             // 将存储服务管理到全局状态中

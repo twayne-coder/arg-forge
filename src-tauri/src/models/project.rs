@@ -1,7 +1,7 @@
+use crate::error::AppError;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use uuid::Uuid;
-use crate::error::AppError;
 
 /// 表单项类型枚举
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]

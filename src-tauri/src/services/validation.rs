@@ -40,10 +40,8 @@ pub fn validate_project_id(project_id: &str) -> Result<Uuid> {
     }
 
     // 验证 UUID 格式
-    Uuid::parse_str(project_id).map_err(|_| AppError::InvalidArgument(format!(
-        "无效的项目 ID 格式: {}",
-        project_id
-    )))
+    Uuid::parse_str(project_id)
+        .map_err(|_| AppError::InvalidArgument(format!("无效的项目 ID 格式: {}", project_id)))
 }
 
 #[cfg(test)]

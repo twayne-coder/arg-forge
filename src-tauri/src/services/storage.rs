@@ -3,7 +3,7 @@ use crate::models::Project;
 use serde_json;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{info, error};
+use tracing::{error, info};
 
 /// 存储服务
 /// 负责管理项目的 JSON 文件存储
@@ -52,7 +52,8 @@ impl StorageService {
         // 验证 UUID 格式，防止路径遍历攻击
         super::validate_project_id(project_id)?;
 
-        Ok(self.data_dir
+        Ok(self
+            .data_dir
             .join("projects")
             .join(format!("{}.json", project_id)))
     }
@@ -73,7 +74,8 @@ impl StorageService {
         // 验证 UUID 格式，防止路径遍历攻击
         super::validate_project_id(project_id)?;
 
-        Ok(self.data_dir
+        Ok(self
+            .data_dir
             .join("projects")
             .join(format!("{}.json.bak", project_id)))
     }
@@ -205,10 +207,7 @@ impl StorageService {
                     error!("加载项目失败 {:?}: {}", path, e);
 
                     // 提取项目 ID 并尝试从备份恢复
-                    let project_id = path
-                        .file_stem()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or("");
+                    let project_id = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
 
                     // 尝试获取备份路径（如果 project_id 格式无效则跳过）
                     if let Ok(backup_path) = self.get_backup_path(project_id) {

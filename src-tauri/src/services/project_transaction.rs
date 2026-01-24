@@ -50,11 +50,7 @@ use crate::services::StorageService;
 /// - 闭包中的修改会在 `op` 返回后立即保存到文件
 /// - 如果保存失败，内存中的修改仍然存在，但文件未更新
 /// - 项目时间戳会自动更新，无需手动调用 `project.touch()`
-pub fn with_project_mut<F, R>(
-    storage: &StorageService,
-    project_id: &str,
-    op: F,
-) -> Result<R>
+pub fn with_project_mut<F, R>(storage: &StorageService, project_id: &str, op: F) -> Result<R>
 where
     F: FnOnce(&mut Project) -> Result<R>,
 {

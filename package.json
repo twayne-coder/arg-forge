@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "predev": "kill-port 1420",
+    "predev": "cargo fmt --manifest-path src-tauri/Cargo.toml && kill-port 1420",
     "dev": "vite",
     "start": "tauri dev",
     "build": "vue-tsc --noEmit && vite build",

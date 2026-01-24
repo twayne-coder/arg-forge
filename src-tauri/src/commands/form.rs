@@ -1,5 +1,5 @@
 use crate::models::{Form, FormItem};
-use crate::services::{StorageService, with_project_mut};
+use crate::services::{with_project_mut, StorageService};
 use serde_json::Value;
 use tauri::State;
 
@@ -40,7 +40,8 @@ pub async fn create_form(
         project.add_form(form.clone());
 
         Ok(form)
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 更新表单信息
@@ -84,7 +85,8 @@ pub async fn update_form(
         form.touch();
 
         Ok(form.clone())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 删除表单
@@ -113,7 +115,8 @@ pub async fn delete_form(
             .remove_form(&form_id)
             .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
         Ok(())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 更新表单项
@@ -171,35 +174,50 @@ pub async fn update_form_item(
         // 根据字段名更新对应字段
         match field_name.as_str() {
             "item_type" => {
-                let type_str = value.as_str()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("item_type 必须是字符串".to_string()))?;
+                let type_str = value.as_str().ok_or_else(|| {
+                    crate::error::AppError::InvalidArgument("item_type 必须是字符串".to_string())
+                })?;
                 item.item_type = type_str.parse()?;
             }
             "content" => {
-                item.content = value.as_str()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("content 必须是字符串".to_string()))?
+                item.content = value
+                    .as_str()
+                    .ok_or_else(|| {
+                        crate::error::AppError::InvalidArgument("content 必须是字符串".to_string())
+                    })?
                     .to_string();
             }
             "param_name" => {
-                item.param_name = value.as_str()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("param_name 必须是字符串".to_string()))?
+                item.param_name = value
+                    .as_str()
+                    .ok_or_else(|| {
+                        crate::error::AppError::InvalidArgument(
+                            "param_name 必须是字符串".to_string(),
+                        )
+                    })?
                     .to_string();
             }
             "enabled" => {
-                item.enabled = value.as_bool()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("enabled 必须是布尔值".to_string()))?;
+                item.enabled = value.as_bool().ok_or_else(|| {
+                    crate::error::AppError::InvalidArgument("enabled 必须是布尔值".to_string())
+                })?;
             }
             "param_style" => {
-                let style_str = value.as_str()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("param_style 必须是字符串".to_string()))?;
+                let style_str = value.as_str().ok_or_else(|| {
+                    crate::error::AppError::InvalidArgument("param_style 必须是字符串".to_string())
+                })?;
                 item.param_style = style_str.parse()?;
             }
             "use_dropdown" => {
-                item.use_dropdown = value.as_bool()
-                    .ok_or_else(|| crate::error::AppError::InvalidArgument("use_dropdown 必须是布尔值".to_string()))?;
+                item.use_dropdown = value.as_bool().ok_or_else(|| {
+                    crate::error::AppError::InvalidArgument("use_dropdown 必须是布尔值".to_string())
+                })?;
             }
             _ => {
-                return Err(crate::error::AppError::InvalidArgument(format!("不支持的字段: {}", field_name)));
+                return Err(crate::error::AppError::InvalidArgument(format!(
+                    "不支持的字段: {}",
+                    field_name
+                )));
             }
         }
 
@@ -207,7 +225,8 @@ pub async fn update_form_item(
         form.touch();
 
         Ok(form.clone())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 添加新的表单项
@@ -262,7 +281,8 @@ pub async fn add_form_item(
         form.touch();
 
         Ok(item)
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 删除表单项
@@ -302,7 +322,8 @@ pub async fn delete_form_item(
         form.touch();
 
         Ok(())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 重新排序表单项（拖拽排序）
@@ -344,7 +365,9 @@ pub async fn reorder_form_items(
 
         // 检查索引有效性
         if old_index >= form.items.len() || new_index >= form.items.len() {
-            return Err(crate::error::AppError::InvalidArgument("索引超出范围".to_string()));
+            return Err(crate::error::AppError::InvalidArgument(
+                "索引超出范围".to_string(),
+            ));
         }
 
         // 移动元素
@@ -355,7 +378,8 @@ pub async fn reorder_form_items(
         form.touch();
 
         Ok(())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 更新下拉选项
@@ -402,7 +426,8 @@ pub async fn update_dropdown_options(
         form.touch();
 
         Ok(())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }
 
 /// 切换下拉/手动模式
@@ -454,5 +479,6 @@ pub async fn toggle_dropdown_mode(
         form.touch();
 
         Ok(())
-    }).map_err(|e| e.to_string())
+    })
+    .map_err(|e| e.to_string())
 }

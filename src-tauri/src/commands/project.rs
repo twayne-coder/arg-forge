@@ -1,7 +1,7 @@
 use crate::models::Project;
 use crate::services::StorageService;
-use tauri::State;
 use serde::Deserialize;
+use tauri::State;
 use uuid::Uuid;
 
 /// 项目创建配置
@@ -40,9 +40,7 @@ pub async fn create_project(
     let project_id = project.id.clone();
 
     // 保存到文件系统
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
+    storage.save_project(&project).map_err(|e| e.to_string())?;
 
     // 验证文件保存成功
     if !storage.project_exists(&project_id) {
@@ -62,12 +60,8 @@ pub async fn create_project(
 /// # 返回
 /// 所有项目的列表
 #[tauri::command]
-pub async fn list_projects(
-    storage: State<'_, StorageService>,
-) -> Result<Vec<Project>, String> {
-    storage
-        .list_projects()
-        .map_err(|e| e.to_string())
+pub async fn list_projects(storage: State<'_, StorageService>) -> Result<Vec<Project>, String> {
+    storage.list_projects().map_err(|e| e.to_string())
 }
 
 /// 获取单个项目详情
@@ -93,9 +87,7 @@ pub async fn get_project(
     project_id: String,
     storage: State<'_, StorageService>,
 ) -> Result<Project, String> {
-    storage
-        .load_project(&project_id)
-        .map_err(|e| e.to_string())
+    storage.load_project(&project_id).map_err(|e| e.to_string())
 }
 
 /// 更新项目信息
@@ -125,7 +117,9 @@ pub async fn update_project(
     storage: State<'_, StorageService>,
 ) -> Result<Project, String> {
     // 加载现有项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    let mut project = storage
+        .load_project(&project_id)
+        .map_err(|e| e.to_string())?;
 
     // 更新字段
     project.name = name;
@@ -133,9 +127,7 @@ pub async fn update_project(
     project.touch(); // 更新时间戳
 
     // 保存
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
+    storage.save_project(&project).map_err(|e| e.to_string())?;
 
     Ok(project)
 }
@@ -194,10 +186,9 @@ pub async fn duplicate_project(
         .map_err(|e| e.to_string())?;
 
     // 使用 JSON 序列化实现高效的深拷贝
-    let json = serde_json::to_string(&original)
-        .map_err(|e| format!("序列化项目失败: {}", e))?;
-    let mut copy: Project = serde_json::from_str(&json)
-        .map_err(|e| format!("反序列化项目失败: {}", e))?;
+    let json = serde_json::to_string(&original).map_err(|e| format!("序列化项目失败: {}", e))?;
+    let mut copy: Project =
+        serde_json::from_str(&json).map_err(|e| format!("反序列化项目失败: {}", e))?;
 
     // 重新生成顶层 UUID
     copy.id = Uuid::new_v4().to_string();
@@ -215,9 +206,7 @@ pub async fn duplicate_project(
     }
 
     // 保存副本
-    storage
-        .save_project(&copy)
-        .map_err(|e| e.to_string())?;
+    storage.save_project(&copy).map_err(|e| e.to_string())?;
 
     Ok(copy)
 }
