@@ -1,5 +1,10 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES 模块中没有 __dirname，需要手动构造
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 从 package.json 读取版本号
 const pkgPath = path.join(__dirname, '..', 'package.json');
