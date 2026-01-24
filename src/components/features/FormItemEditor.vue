@@ -14,9 +14,8 @@
 
     <!-- 启用开关 -->
     <Switch
-      :checked="item.enabled"
-      @update:checked="(v) => { console.log('[FormItemEditor] Switch @update:checked (deprecated):', v) }"
-      @update:model-value="(v) => { console.log('[FormItemEditor] Switch @update:model-value:', v); handleUpdate('enabled', v) }"
+      :model-value="item.enabled"
+      @update:model-value="handleUpdate('enabled', $event)"
       class="shrink-0"
     />
 
