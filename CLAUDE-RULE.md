@@ -1,103 +1,355 @@
-开发范式指南
+# ArgForge 编码规范
 
-## 1. 核心架构哲学 (The "Vibe")
+> 聚焦最容易出问题的点，确保代码质量
 
-*   **UI 优先 (Frontend First):** 界面必须呈现 Windows 11 原生质感（Mica 材质、圆角、Segoe UI 字体）。
-*   **Rust 沉底 (Rust as Core):** Rust 仅负责重业务逻辑（SSH 连接、加密存储、文件 I/O），不处理 UI 状态。
-*   **严格类型桥接 (Strict IPC):** 前后端通信必须有严格的 TypeScript 定义，禁止使用 `any`。
+---
 
-## 2. 技术栈选型 (The Stack)
+## 一、通用原则
 
-*   **Core:** Tauri v2 (性能与安全性最佳)
-*   **Frontend:** Vue 3 + TypeScript + Vite
-*   **State Management:** Pinia (用于 UI 状态) + VueUse (通用 Hooks)
-*   **UI Framework:** **Shadcn-vue** (配合 Tailwind CSS) + **Lucide Icons**。
-    *   *理由：Shadcn 提供源码级控制，非常适合 AI 修改组件细节以匹配 Win11 风格。*
-*   **Backend:** Rust
-    *   SSH: `russh` 或 `ssh2`
-    *   Async: `tokio`
-    *   Error Handling: `thiserror` (库) + `anyhow` (顶层)
-    *   Serialization: `serde` + `serde_json`
+### 类型安全
+- **Rust**: 禁止使用 `unwrap()`，优先使用 `?` 传播错误
+- **TypeScript**: 禁止使用 `any`，必须明确类型定义
+- **类型同步**: 修改 Rust Struct 后必须同步更新 `src/types/bindings.ts`
 
-## 3. 目录结构规范
+### 错误处理
+- **Rust**: 使用统一的 `AppError` 类型（基于 `thiserror`）
+- **Frontend**: 使用 try-catch 捕获错误，通过 `console.error` 记录
+- **用户反馈**: 错误信息必须对用户友好，避免技术术语
 
-AI 生成代码时必须遵循此结构，保持上下文清晰：
+### 命名约定
+- **Rust**: `snake_case`（函数/变量）、`PascalCase`（类型/枚举）
+- **TypeScript**: `camelCase`（变量/函数）、`PascalCase`（类型/接口）
+- **常量**: `UPPER_SNAKE_CASE`
 
-```text
-/src-tauri
-  /src
-    /commands       # 所有的 Tauri Commands 单独分文件
-      mod.rs
-      ssh.rs        # SSH 相关指令
-      store.rs      # 数据持久化指令
-    /services       # 纯 Rust 业务逻辑 (不含 Tauri 依赖)
-    lib.rs          # 插件注册与入口
-    main.rs
-/src
-  /components
-    /ui             # Shadcn 组件
-    /layout         # 布局 (Sidebar, Titlebar)
-  /composables      # 逻辑复用 (useTerminal, useSSH)
-  /stores           # Pinia 状态
-  /types            # TS 类型定义 (需与 Rust Struct 对应)
-  App.vue
-```
+---
 
-## 4. 编码规范 (Coding Standards)
+## 二、Rust 后端规范
 
-### 4.1. 前端 (Vue + TS)
+### 易错点 1: 禁止 `unwrap()`
 
-*   **Script Setup:** 必须使用 `<script setup lang="ts">`。
-*   **Tailwind 优先:** 样式尽量使用 Tailwind Utility Classes，避免手写 `<style>`。
-*   **Win11 风格:**
-    *   窗口背景透明，使用 Tauri 的 `WindowEffects` 实现 Mica 效果。
-    *   自定义标题栏 (Titlebar)，隐藏系统原生标题栏。
-    *   字体堆栈：`font-family: "Segoe UI Variable", "Segoe UI", sans-serif;`
-*   **调用 Rust:**
-    *   所有的 IPC 调用封装在 `src/api` 文件夹中，不要在组件内直接调用 `invoke`。
-
-**❌ 错误示范:**
-```typescript
-// Component.vue
-import { invoke } from "@tauri-apps/api/core";
-invoke('connect_ssh', { ip: '1.1.1.1' });
-```
-
-**✅ 正确示范:**
-```typescript
-// src/api/ssh.ts
-export async function connectSsh(host: HostConfig): Promise<SessionId> {
-  return await invoke('connect_ssh', { config: host });
-}
-```
-
-### 4.2. 后端 (Rust)
-
-*   **命令模式:** 每个 `tauri::command` 必须返回 `Result<T, String>` (或自定义 Error 类型)。
-*   **参数传递:** 所有参数必须通过 `serde::Deserialize` 的 Struct 传递，不要传散乱的参数。
-*   **状态管理:** 使用 `tauri::State<T>` 管理全局状态 (如 SSH 连接池)，配合 `Mutex` 或 `RwLock`。
-
-**Rust 范例:**
 ```rust
-#[derive(serde::Deserialize)]
-pub struct SshConfig {
-    pub ip: String,
-    pub user: String,
-    // ...
+// 正确 - 使用 ? 传播错误
+let project = storage.load_project(&id)?;
+
+// 错误 - unwrap 会 panic
+let project = storage.load_project(&id).unwrap();
+```
+
+### 易错点 2: Command 参数必须使用结构体
+
+```rust
+// 正确 - 使用结构体
+#[derive(Deserialize)]
+pub struct CreateProjectConfig {
+    pub name: String,
+    pub description: String,
 }
 
 #[tauri::command]
-pub async fn connect_ssh(
-    state: tauri::State<'_, SshState>, 
-    config: SshConfig
-) -> Result<String, String> {
-    // Logic here
+pub async fn create_project(
+    config: CreateProjectConfig,
+) -> Result<Project, String>
+
+// 错误 - 散参
+#[tauri::command]
+pub async fn create_project(
+    name: String,
+    description: String,
+) -> Result<Project, String>
+```
+
+### 易错点 3: 返回类型规范
+
+必须返回 `Result<T, String>` 或自定义 Result：
+
+```rust
+// 正确
+#[tauri::command]
+pub async fn get_project(id: String) -> Result<Project, String>
+
+// 自定义 Result 类型
+pub type Result<T> = std::result::Result<T, AppError>;
+```
+
+### 易错点 4: 错误处理模式
+
+使用 `thiserror` 定义错误：
+
+```rust
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("IO 错误: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("项目未找到: {0}")]
+    ProjectNotFound(String),
+
+    #[error("无效参数: {0}")]
+    InvalidArgument(String),
 }
 ```
 
-### 4.3. 自动类型同步 (Killer Feature)
+### 易错点 5: 文档注释规范
 
-*   **强制要求:** 使用 `tauri-specta` 或手动维护，**确保 Rust 的 Struct 修改后，AI 必须同步更新前端的 `/types/*.ts` 文件**。
+必须使用三斜线注释，包含功能说明和参数：
 
+```rust
+/// 创建新项目
+///
+/// # 参数
+/// * `config` - 项目配置 (名称和描述)
+///
+/// # 返回
+/// 创建的项目对象
+///
+/// # 错误
+/// - 项目名称为空时返回错误
+#[tauri::command]
+pub async fn create_project(
+    config: CreateProjectConfig,
+) -> Result<Project, String>
+```
 
+### 代码组织
 
+```
+src-tauri/src/
+  commands/    # Tauri Commands（API 层）
+  services/    # 业务逻辑层（纯 Rust，无 Tauri 依赖）
+  models/      # 数据结构定义
+  error.rs     # 统一错误定义
+  lib.rs       # Commands 注册
+```
+
+**职责分离**：
+- **Commands**: 处理 IPC 调用，参数验证
+- **Services**: 核心业务逻辑，可独立测试
+- **Models**: 数据结构，序列化/反序列化
+
+---
+
+## 三、Vue 前端规范
+
+### 易错点 1: 禁止 `any`
+
+```typescript
+// 正确 - 明确类型
+interface ProjectConfig {
+  name: string;
+  description: string;
+}
+
+async function createProject(config: ProjectConfig): Promise<Project> {
+  // ...
+}
+
+// 错误 - 使用 any
+async function createProject(config: any): Promise<any> {
+  // ...
+}
+```
+
+### 易错点 2: IPC 调用必须封装
+
+所有 IPC 调用必须封装在 `src/api/` 中：
+
+```typescript
+// 正确 - src/api/project.ts
+import { invoke } from "@tauri-apps/api/core";
+
+export async function createProject(
+  name: string,
+  description: string
+): Promise<Project> {
+  return await invoke("create_project", {
+    config: { name, description },
+  });
+}
+
+// 错误 - 组件内直接调用
+import { invoke } from "@tauri-apps/api/core";
+invoke("create_project", { name, description });
+```
+
+**封装函数必须包含 JSDoc**：
+
+```typescript
+/**
+ * 创建新项目
+ * @param name - 项目名称
+ * @param description - 项目描述
+ * @returns 创建的项目对象
+ * @throws {Error} 项目名称为空时抛出错误
+ */
+export async function createProject(
+  name: string,
+  description: string
+): Promise<Project>
+```
+
+### 易错点 3: 必须使用 Script Setup
+
+```vue
+<!-- 正确 -->
+<script setup lang="ts">
+import { ref } from "vue";
+import { useProjectStore } from "@/stores/project";
+
+const name = ref("");
+</script>
+
+<!-- 错误 -->
+<script>
+export default {
+  data() {
+    return { name: "" };
+  }
+};
+</script>
+```
+
+### 易错点 4: 类型同步
+
+修改 Rust Struct 后必须同步 `src/types/bindings.ts`：
+
+```bash
+# 重新生成类型定义
+pnpm tauri build
+```
+
+### 状态管理
+
+使用 Pinia 进行状态管理：
+
+```typescript
+// stores/project.ts
+export const useProjectStore = defineStore("project", () => {
+  const projects = ref<Project[]>([]);
+
+  async function loadProjects() {
+    projects.value = await projectApi.listProjects();
+  }
+
+  return { projects, loadProjects };
+});
+```
+
+### 样式规范
+
+优先使用 Tailwind，避免手写 CSS：
+
+```vue
+<!-- 正确 -->
+<div class="flex items-center gap-4 p-4 rounded-lg bg-white">
+  <Input v-model="name" class="flex-1" />
+</div>
+
+<!-- 错误 -->
+<style scoped>
+.container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+</style>
+```
+
+---
+
+## 四、Git 规范
+
+### 提交信息格式
+
+遵循 **Conventional Commits**：
+
+```
+<type>(<scope>): <subject>
+```
+
+**类型**：
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `refactor`: 重构（不改变功能）
+- `docs`: 文档更新
+- `test`: 测试相关
+- `chore`: 构建/工具配置
+
+**示例**：
+
+```
+feat(project): 添加项目复制功能
+
+- 实现 duplicate_project command
+- 前端添加复制按钮和确认对话框
+
+Closes #123
+```
+
+### 分支策略
+
+```
+main          - 主分支
+  ├── develop - 开发分支
+  └── feature/* - 功能分支
+  └── fix/*     - 修复分支
+```
+
+---
+
+## 五、代码审查清单
+
+### Rust 后端
+- [ ] 所有公共函数都有文档注释
+- [ ] 使用 `AppError` 而非 `String` 作为错误类型
+- [ ] 避免使用 `unwrap()`，使用 `?` 传播错误
+- [ ] Command 参数使用 Struct 而非散参
+- [ ] 类型定义同步到 `src/types/bindings.ts`
+
+### Vue 前端
+- [ ] 组件使用 `<script setup lang="ts">`
+- [ ] 无 `any` 类型使用
+- [ ] IPC 调用封装在 `src/api/` 中
+- [ ] API 函数有 JSDoc 注释
+- [ ] 优先使用 Tailwind 而非内联样式
+
+### 通用
+- [ ] 代码通过 `cargo clippy` 检查
+- [ ] 代码通过 `pnpm build` 类型检查
+- [ ] 提交信息遵循 Conventional Commits
+- [ ] 无 `console.log` 调试代码残留
+
+---
+
+## 六、开发工作流
+
+### 启动开发环境
+
+```bash
+# 安装依赖
+pnpm install
+
+# 启动 Tauri 开发模式
+pnpm tauri dev
+```
+
+### 代码检查
+
+```bash
+# Rust 代码检查
+cd src-tauri
+cargo clippy
+cargo fmt --check
+
+# TypeScript 类型检查
+pnpm build
+```
+
+### 构建生产版本
+
+```bash
+# 构建前端和后端
+pnpm build
+
+# 构建桌面应用
+pnpm tauri build -- --release
+```
