@@ -30,6 +30,8 @@ anyhow = "1.0"
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 [dev-dependencies]
 # 用于测试的临时目录库

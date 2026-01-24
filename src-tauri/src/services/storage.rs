@@ -3,6 +3,7 @@ use crate::models::Project;
 use serde_json;
 use std::fs;
 use std::path::{Path, PathBuf};
+use tracing::{info, error};
 
 /// 存储服务
 /// 负责管理项目的 JSON 文件存储
@@ -16,130 +17,122 @@ pub struct StorageService {
 
 impl StorageService {
     /// 创建新的存储服务实例
+    ///
+    /// 初始化存储服务，确保必要的数据目录存在。
+    /// 数据目录结构:
+    /// - Windows: %APPDATA%\com.ctw.arg-forge\projects\
+    /// - macOS: ~/Library/Application Support/com.ctw.arg-forge/projects\
+    /// - Linux: ~/.config/com.ctw.arg-forge/projects\
+    ///
     /// # 参数
     /// * `data_dir` - 应用数据目录路径
+    ///
     /// # 返回
     /// 存储服务实例
     pub fn new(data_dir: PathBuf) -> Result<Self> {
-        println!("[StorageService] ===== 初始化存储服务 =====");
-        println!("[StorageService] 数据目录: {:?}", data_dir);
-
-        // 确保数据目录存在
+        // 创建主数据目录和项目子目录
         fs::create_dir_all(&data_dir)?;
-        println!("[StorageService] ✅ 数据目录已创建/已存在");
-
-        // 确保项目子目录存在
         let projects_dir = data_dir.join("projects");
-        println!("[StorageService] 项目目录: {:?}", projects_dir);
         fs::create_dir_all(&projects_dir)?;
-        println!("[StorageService] ✅ 项目目录已创建/已存在");
 
         Ok(Self { data_dir })
     }
 
     /// 获取项目文件路径
+    ///
     /// # 参数
-    /// * `project_id` - 项目 ID
+    /// * `project_id` - 项目 ID (UUID)
+    ///
     /// # 返回
-    /// 项目文件的完整路径
-    fn get_project_path(&self, project_id: &str) -> PathBuf {
-        let path = self.data_dir
+    /// 项目文件的完整路径 (如: `projects/{uuid}.json`)
+    ///
+    /// # 错误
+    /// 如果 project_id 格式无效，返回 `AppError::InvalidArgument`
+    fn get_project_path(&self, project_id: &str) -> Result<PathBuf> {
+        // 验证 UUID 格式，防止路径遍历攻击
+        super::validate_project_id(project_id)?;
+
+        Ok(self.data_dir
             .join("projects")
-            .join(format!("{}.json", project_id));
-        println!("[StorageService] get_project_path: {:?}", path);
-        path
+            .join(format!("{}.json", project_id)))
     }
 
     /// 获取备份文件路径
+    ///
+    /// 备份文件用于在保存失败或数据损坏时恢复。
+    ///
     /// # 参数
-    /// * `project_id` - 项目 ID
+    /// * `project_id` - 项目 ID (UUID)
+    ///
     /// # 返回
-    /// 备份文件的完整路径
-    fn get_backup_path(&self, project_id: &str) -> PathBuf {
-        self.data_dir
+    /// 备份文件的完整路径 (如: `projects/{uuid}.json.bak`)
+    ///
+    /// # 错误
+    /// 如果 project_id 格式无效，返回 `AppError::InvalidArgument`
+    fn get_backup_path(&self, project_id: &str) -> Result<PathBuf> {
+        // 验证 UUID 格式，防止路径遍历攻击
+        super::validate_project_id(project_id)?;
+
+        Ok(self.data_dir
             .join("projects")
-            .join(format!("{}.json.bak", project_id))
+            .join(format!("{}.json.bak", project_id)))
     }
 
     /// 保存项目到文件
-    /// # 参数
-    /// * `project` - 要保存的项目
     ///
-    /// # 工作流程
-    /// 1. 如果已存在旧文件，先创建备份
-    /// 2. 将项目序列化为 JSON
-    /// 3. 写入文件
+    /// 保存流程包含安全机制：
+    /// 1. 验证 project_id 格式（防止路径遍历）
+    /// 2. 如果旧文件存在，先创建 `.bak` 备份
+    /// 3. 序列化为格式化的 JSON (便于人类阅读和调试)
+    /// 4. 原子写入文件
+    ///
+    /// # 参数
+    /// * `project` - 要保存的项目对象
+    ///
+    /// # 返回
+    /// 成功时返回 Ok(())，失败时返回错误
     pub fn save_project(&self, project: &Project) -> Result<()> {
-        println!("[StorageService] ===== save_project 开始 =====");
-        println!("[StorageService] 项目ID: {}", project.id);
-        println!("[StorageService] 项目名称: {}", project.name);
+        let file_path = self.get_project_path(&project.id)?;
+        let backup_path = self.get_backup_path(&project.id)?;
 
-        let file_path = self.get_project_path(&project.id);
-        let backup_path = self.get_backup_path(&project.id);
-
-        println!("[StorageService] 目标文件: {:?}", file_path);
-        println!("[StorageService] 备份文件: {:?}", backup_path);
-
-        // 如果文件已存在，创建备份
+        // 创建旧文件的备份（防止数据丢失）
         if file_path.exists() {
-            println!("[StorageService] 文件已存在，创建备份...");
             fs::copy(&file_path, &backup_path)?;
-            println!("[StorageService] ✅ 备份创建成功");
-        } else {
-            println!("[StorageService] 文件不存在，跳过备份");
         }
 
-        // 序列化为格式化的 JSON
-        println!("[StorageService] 开始序列化项目...");
+        // 序列化为格式化的 JSON（便于调试和版本控制）
         let json = serde_json::to_string_pretty(project)?;
-        println!("[StorageService] ✅ 序列化成功，JSON 长度: {} 字节", json.len());
 
         // 写入文件
-        println!("[StorageService] 开始写入文件...");
         fs::write(&file_path, json)?;
-        println!("[StorageService] ✅ 文件写入成功");
 
-        // 验证文件存在
-        if file_path.exists() {
-            println!("[StorageService] ✅ 文件存在性验证通过");
-        } else {
-            println!("[StorageService] ⚠️  警告：文件写入成功但不存在！");
-        }
-
-        println!("[StorageService] ===== save_project 完成 =====");
         Ok(())
     }
 
     /// 从文件加载项目
+    ///
     /// # 参数
-    /// * `project_id` - 项目 ID
+    /// * `project_id` - 项目 ID (UUID)
+    ///
     /// # 返回
-    /// 加载的项目数据
+    /// 加载的项目对象
     ///
     /// # 错误
-    /// 如果文件不存在或解析失败，返回错误
+    /// 如果 project_id 格式无效，返回 `AppError::InvalidArgument`
+    /// 如果文件不存在，返回 `AppError::ProjectNotFound`
+    /// 如果 JSON 解析失败，返回 `AppError::Json`
     pub fn load_project(&self, project_id: &str) -> Result<Project> {
-        println!("[StorageService] ===== load_project 开始 =====");
-        println!("[StorageService] 项目ID: {}", project_id);
-
-        let file_path = self.get_project_path(project_id);
-        println!("[StorageService] 文件路径: {:?}", file_path);
+        let file_path = self.get_project_path(project_id)?;
 
         // 检查文件是否存在
         if !file_path.exists() {
-            println!("[StorageService] ❌ 文件不存在");
             return Err(AppError::ProjectNotFound(project_id.to_string()));
         }
 
-        println!("[StorageService] 文件存在，开始读取...");
+        // 读取并反序列化 JSON
         let content = fs::read_to_string(&file_path)?;
-        println!("[StorageService] ✅ 读取成功，内容长度: {} 字节", content.len());
-
-        println!("[StorageService] 开始反序列化...");
         let project = serde_json::from_str(&content)?;
-        println!("[StorageService] ✅ 反序列化成功");
 
-        println!("[StorageService] ===== load_project 完成 =====");
         Ok(project)
     }
 
@@ -148,11 +141,12 @@ impl StorageService {
     /// * `project_id` - 项目 ID
     ///
     /// # 工作流程
-    /// 1. 删除项目文件
-    /// 2. 删除备份文件（如果存在）
+    /// 1. 验证 project_id 格式（防止路径遍历）
+    /// 2. 删除项目文件
+    /// 3. 删除备份文件（如果存在）
     pub fn delete_project(&self, project_id: &str) -> Result<()> {
-        let file_path = self.get_project_path(project_id);
-        let backup_path = self.get_backup_path(project_id);
+        let file_path = self.get_project_path(project_id)?;
+        let backup_path = self.get_backup_path(project_id)?;
 
         // 删除项目文件
         if file_path.exists() {
@@ -168,60 +162,62 @@ impl StorageService {
     }
 
     /// 列出所有项目
+    ///
+    /// 扫描项目目录并加载所有有效的项目文件。
+    /// 具有容错机制：如果主文件损坏，自动尝试从备份恢复。
+    ///
     /// # 返回
-    /// 所有加载的项目列表
+    /// 成功加载的项目列表
     ///
     /// # 工作流程
-    /// 1. 扫描项目目录
-    /// 2. 过滤出 .json 文件
-    /// 3. 加载每个文件
-    /// 4. 如果某个文件加载失败，尝试恢复备份
+    /// 1. 扫描 `projects/` 目录
+    /// 2. 过滤 `.json` 文件（排除 `.bak` 备份文件）
+    /// 3. 尝试加载每个文件
+    /// 4. 如果加载失败，尝试从 `.bak` 备份恢复
     pub fn list_projects(&self) -> Result<Vec<Project>> {
         let projects_dir = self.data_dir.join("projects");
         let mut projects = Vec::new();
 
-        // 确保目录存在
+        // 如果项目目录不存在，返回空列表
         if !projects_dir.exists() {
             return Ok(projects);
         }
 
-        // 读取目录中的所有条目
+        // 扫描目录中的所有文件
         let entries = fs::read_dir(&projects_dir)?;
 
         for entry in entries {
             let entry = entry?;
             let path = entry.path();
 
-            // 只处理 .json 文件（排除备份文件）
+            // 只处理 .json 文件，排除备份文件
             if path.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
-
-            // 跳过备份文件
             if path.to_str().map_or(false, |s| s.ends_with(".bak")) {
                 continue;
             }
 
-            // 尝试加载项目
+            // 尝试加载项目，失败时尝试从备份恢复
             match self.load_project_from_path(&path) {
                 Ok(project) => projects.push(project),
                 Err(e) => {
-                    eprintln!("加载项目失败 {:?}: {}", path, e);
+                    error!("加载项目失败 {:?}: {}", path, e);
 
-                    // 尝试从备份恢复
+                    // 提取项目 ID 并尝试从备份恢复
                     let project_id = path
                         .file_stem()
                         .and_then(|s| s.to_str())
                         .unwrap_or("");
-                    let backup_path = self.get_backup_path(project_id);
 
-                    if backup_path.exists() {
-                        eprintln!("尝试从备份恢复: {:?}", backup_path);
-                        if let Ok(project) = self.load_project_from_path(&backup_path) {
-                            eprintln!("备份恢复成功");
-                            projects.push(project);
-                        } else {
-                            eprintln!("备份恢复也失败");
+                    // 尝试获取备份路径（如果 project_id 格式无效则跳过）
+                    if let Ok(backup_path) = self.get_backup_path(project_id) {
+                        if backup_path.exists() {
+                            info!("尝试从备份恢复: {:?}", backup_path);
+                            if let Ok(project) = self.load_project_from_path(&backup_path) {
+                                info!("备份恢复成功");
+                                projects.push(project);
+                            }
                         }
                     }
                 }
@@ -248,7 +244,11 @@ impl StorageService {
     /// # 返回
     /// true 如果项目文件存在，否则 false
     pub fn project_exists(&self, project_id: &str) -> bool {
-        self.get_project_path(project_id).exists()
+        // 如果验证失败，认为项目不存在
+        match self.get_project_path(project_id) {
+            Ok(path) => path.exists(),
+            Err(_) => false,
+        }
     }
 
     /// 清理所有备份文件
@@ -369,7 +369,7 @@ mod tests {
         storage.save_project(&project).unwrap();
 
         // 检查备份文件存在
-        let backup_path = storage.get_backup_path(&project_id);
+        let backup_path = storage.get_backup_path(&project_id).unwrap();
         assert!(backup_path.exists());
     }
 }

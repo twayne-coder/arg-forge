@@ -43,6 +43,11 @@ pub enum AppError {
     /// 从备份文件恢复数据时失败
     #[error("备份恢复失败: {0}")]
     BackupRestore(String),
+
+    /// 应用初始化错误
+    /// 应用启动或初始化过程中失败
+    #[error("应用初始化失败: {0}")]
+    Initialization(String),
 }
 
 /// 将 AppError 转换为 String

@@ -10,32 +10,40 @@ pub use models::{Form, FormItem, ParamStyle, Project};
 pub use services::{CommandService, StorageService};
 
 use tauri::Manager;
+use tracing_subscriber::{fmt, EnvFilter, prelude::*};
 
 /// 应用入口点
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    // 初始化日志系统
+    tracing_subscriber::registry()
+        .with(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
+        .with(fmt::layer().with_ansi(true))
+        .init();
+
+    let result = tauri::Builder::default()
         // 初始化 opener 插件
         .plugin(tauri_plugin_opener::init())
         // 设置应用状态
         .setup(|app| {
-            println!("[App] ===== Tauri 应用初始化开始 =====");
+            tracing::info!("===== Tauri 应用初始化开始 =====");
 
-            // 获取应用数据目录
-            let data_dir = app.path().app_data_dir().expect("无法获取数据目录");
-            println!("[App] 应用数据目录: {:?}", data_dir);
+            // 安全获取应用数据目录
+            let data_dir = app.path().app_data_dir()
+                .map_err(|e| format!("无法获取数据目录: {}", e))?;
+            tracing::info!("应用数据目录: {:?}", data_dir);
 
-            // 初始化存储服务
-            println!("[App] 开始初始化存储服务...");
+            // 安全初始化存储服务
+            tracing::info!("开始初始化存储服务...");
             let storage = StorageService::new(data_dir)
-                .expect("无法初始化存储服务");
-            println!("[App] ✅ 存储服务初始化成功");
+                .map_err(|e| format!("无法初始化存储服务: {}", e))?;
+            tracing::info!("✅ 存储服务初始化成功");
 
             // 将存储服务管理到全局状态中
             app.manage(storage);
-            println!("[App] ✅ 存储服务已注册到全局状态");
+            tracing::info!("✅ 存储服务已注册到全局状态");
 
-            println!("[App] ===== Tauri 应用初始化完成 =====");
+            tracing::info!("===== Tauri 应用初始化完成 =====");
             Ok(())
         })
         // 注册所有 Tauri Commands
@@ -60,6 +68,11 @@ pub fn run() {
             // 命令生成命令 (1 个)
             commands::generate_command,
         ])
-        .run(tauri::generate_context!())
-        .expect("启动 Tauri 应用失败");
+        .run(tauri::generate_context!());
+
+    // 优雅处理启动失败
+    if let Err(e) = result {
+        eprintln!("启动 Tauri 应用失败: {}", e);
+        std::process::exit(1);
+    }
 }
