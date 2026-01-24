@@ -81,7 +81,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusIcon, FolderOpenIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import { useUiStore } from "@/stores/ui";
-import { useProjectSort } from "@/composables/useProjectSort";
 import ProjectCard from "./ProjectCard.vue";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";
@@ -98,9 +97,6 @@ const projectStore = useProjectStore();
 
 /** UI store */
 const uiStore = useUiStore();
-
-/** 排序配置 */
-const { sortConfig } = useProjectSort();
 
 /** 是否显示新建对话框 */
 const showCreateDialog = ref(false);
@@ -122,15 +118,17 @@ const hasProjects = computed(() => projectStore.hasProjects);
 
 /** 排序按钮文本 */
 const sortButtonText = computed(() => {
-  const { sortBy, order } = sortConfig;
-  const field = sortBy === 'created_at' ? t('project.sortByCreated') : t('project.sortByUpdated');
-  const direction = order === 'asc' ? t('project.sortOrderAsc') : t('project.sortOrderDesc');
-  return `${field}${direction}`;
+  const { sortBy, order } = projectStore.sortConfig;
+  if (sortBy === 'created_at') {
+    return order === 'asc' ? t('project.sortCreatedAsc') : t('project.sortCreatedDesc');
+  } else {
+    return order === 'asc' ? t('project.sortUpdatedAsc') : t('project.sortUpdatedDesc');
+  }
 });
 
 /** 排序方向图标 */
 const sortDirectionIcon = computed(() => {
-  return sortConfig.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+  return projectStore.sortConfig.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
 });
 
 /** 初始化 */
