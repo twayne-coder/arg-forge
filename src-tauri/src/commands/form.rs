@@ -1,5 +1,5 @@
 use crate::models::{Form, FormItem};
-use crate::services::StorageService;
+use crate::services::{StorageService, with_project_mut};
 use serde_json::Value;
 use tauri::State;
 
@@ -29,24 +29,18 @@ pub async fn create_form(
     description: String,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 创建新表单
+        let mut form = Form::default();
+        form.name = name;
+        form.description = description;
+        form.sort_order = project.forms.len() as i32;
 
-    // 创建新表单
-    let mut form = Form::default();
-    form.name = name;
-    form.description = description;
-    form.sort_order = project.forms.len() as i32;
+        // 添加到项目
+        project.add_form(form.clone());
 
-    // 添加到项目
-    project.add_form(form.clone());
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(form)
+        Ok(form)
+    }).map_err(|e| e.to_string())
 }
 
 /// 更新表单信息
@@ -78,28 +72,19 @@ pub async fn update_form(
     description: String,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单并更新
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单并更新
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 更新字段
+        form.name = name;
+        form.description = description;
+        form.touch();
 
-    // 更新字段
-    form.name = name;
-    form.description = description;
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 克隆表单用于返回（在保存前）
-    let result_form = form.clone();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(result_form)
+        Ok(form.clone())
+    }).map_err(|e| e.to_string())
 }
 
 /// 删除表单
@@ -122,20 +107,13 @@ pub async fn delete_form(
     form_id: String,
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
-
-    // 删除表单
-    project
-        .remove_form(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+    with_project_mut(&storage, &project_id, |project| {
+        // 删除表单
+        project
+            .remove_form(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
+        Ok(())
+    }).map_err(|e| e.to_string())
 }
 
 /// 更新表单项
@@ -179,82 +157,57 @@ pub async fn update_form_item(
     value: Value,
     storage: State<'_, StorageService>,
 ) -> Result<Form, String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 查找表单项
+        let item = form
+            .get_item_mut(&item_id)
+            .ok_or_else(|| crate::error::AppError::FormItemNotFound(item_id.clone()))?;
 
-    // 查找表单项
-    let item = form
-        .items
-        .iter_mut()
-        .find(|i| i.id == item_id)
-        .ok_or_else(|| format!("表单项未找到: {}", item_id))?;
-
-    // 根据字段名更新对应字段
-    match field_name.as_str() {
-        "item_type" => {
-            let type_str = value
-                .as_str()
-                .ok_or("item_type 必须是字符串")?;
-            item.item_type = match type_str {
-                "Command" => crate::models::ItemType::Command,
-                "Parameter" => crate::models::ItemType::Parameter,
-                _ => return Err(format!("无效的项类型: {}", type_str)),
-            };
+        // 根据字段名更新对应字段
+        match field_name.as_str() {
+            "item_type" => {
+                let type_str = value.as_str()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("item_type 必须是字符串".to_string()))?;
+                item.item_type = type_str.parse()?;
+            }
+            "content" => {
+                item.content = value.as_str()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("content 必须是字符串".to_string()))?
+                    .to_string();
+            }
+            "param_name" => {
+                item.param_name = value.as_str()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("param_name 必须是字符串".to_string()))?
+                    .to_string();
+            }
+            "enabled" => {
+                item.enabled = value.as_bool()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("enabled 必须是布尔值".to_string()))?;
+            }
+            "param_style" => {
+                let style_str = value.as_str()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("param_style 必须是字符串".to_string()))?;
+                item.param_style = style_str.parse()?;
+            }
+            "use_dropdown" => {
+                item.use_dropdown = value.as_bool()
+                    .ok_or_else(|| crate::error::AppError::InvalidArgument("use_dropdown 必须是布尔值".to_string()))?;
+            }
+            _ => {
+                return Err(crate::error::AppError::InvalidArgument(format!("不支持的字段: {}", field_name)));
+            }
         }
-        "content" => {
-            item.content = value
-                .as_str()
-                .ok_or("content 必须是字符串")?
-                .to_string();
-        }
-        "param_name" => {
-            item.param_name = value
-                .as_str()
-                .ok_or("param_name 必须是字符串")?
-                .to_string();
-        }
-        "enabled" => {
-            item.enabled = value.as_bool().ok_or("enabled 必须是布尔值")?;
-        }
-        "param_style" => {
-            let style_str = value
-                .as_str()
-                .ok_or("param_style 必须是字符串")?;
-            item.param_style = match style_str {
-                "KeyValue" => crate::models::ParamStyle::KeyValue,
-                "EqualValue" => crate::models::ParamStyle::EqualValue,
-                "ValueOnly" => crate::models::ParamStyle::ValueOnly,
-                _ => return Err(format!("无效的参数风格: {}", style_str)),
-            };
-        }
-        "use_dropdown" => {
-            item.use_dropdown = value.as_bool().ok_or("use_dropdown 必须是布尔值")?;
-        }
-        _ => {
-            return Err(format!("不支持的字段: {}", field_name));
-        }
-    }
 
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
+        // 更新表单时间戳
+        form.touch();
 
-    // 克隆表单用于返回（在保存前）
-    let result_form = form.clone();
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(result_form)
+        Ok(form.clone())
+    }).map_err(|e| e.to_string())
 }
 
 /// 添加新的表单项
@@ -291,43 +244,25 @@ pub async fn add_form_item(
     item_type: Option<String>,
     storage: State<'_, StorageService>,
 ) -> Result<FormItem, String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 创建新表单项
+        let mut item = FormItem::default();
 
-    // 创建新表单项
-    let mut item = FormItem::default();
+        // 根据参数设置类型
+        if let Some(type_str) = item_type {
+            item.item_type = type_str.parse()?;
+        }
 
-    // 根据参数设置类型
-    if let Some(type_str) = item_type {
-        item.item_type = match type_str.as_str() {
-            "Command" => crate::models::ItemType::Command,
-            "Parameter" => crate::models::ItemType::Parameter,
-            _ => return Err(format!("无效的项类型: {}", type_str)),
-        };
-    }
+        form.items.push(item.clone());
+        form.touch();
 
-    form.items.push(item.clone());
-
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 显式结束 form 借用
-    drop(form);
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(item)
+        Ok(item)
+    }).map_err(|e| e.to_string())
 }
 
 /// 删除表单项
@@ -353,38 +288,21 @@ pub async fn delete_form_item(
     item_id: String,
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 删除表单项
+        form.remove_item(&item_id)
+            .ok_or_else(|| crate::error::AppError::FormItemNotFound(item_id.clone()))?;
 
-    // 查找并删除表单项
-    let pos = form
-        .items
-        .iter()
-        .position(|i| i.id == item_id)
-        .ok_or_else(|| format!("表单项未找到: {}", item_id))?;
+        // 更新表单时间戳
+        form.touch();
 
-    form.items.remove(pos);
-
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 显式结束 form 借用
-    drop(form);
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+        Ok(())
+    }).map_err(|e| e.to_string())
 }
 
 /// 重新排序表单项（拖拽排序）
@@ -418,38 +336,26 @@ pub async fn reorder_form_items(
     new_index: usize,
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 检查索引有效性
+        if old_index >= form.items.len() || new_index >= form.items.len() {
+            return Err(crate::error::AppError::InvalidArgument("索引超出范围".to_string()));
+        }
 
-    // 检查索引有效性
-    if old_index >= form.items.len() || new_index >= form.items.len() {
-        return Err("索引超出范围".to_string());
-    }
+        // 移动元素
+        let item = form.items.remove(old_index);
+        form.items.insert(new_index, item);
 
-    // 移动元素
-    let item = form.items.remove(old_index);
-    form.items.insert(new_index, item);
+        // 更新表单时间戳
+        form.touch();
 
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 显式结束 form 借用
-    drop(form);
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+        Ok(())
+    }).map_err(|e| e.to_string())
 }
 
 /// 更新下拉选项
@@ -478,39 +384,25 @@ pub async fn update_dropdown_options(
     options: Vec<String>,
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 查找表单项
+        let item = form
+            .get_item_mut(&item_id)
+            .ok_or_else(|| crate::error::AppError::FormItemNotFound(item_id.clone()))?;
 
-    // 查找表单项
-    let item = form
-        .items
-        .iter_mut()
-        .find(|i| i.id == item_id)
-        .ok_or_else(|| format!("表单项未找到: {}", item_id))?;
+        // 更新下拉选项
+        item.dropdown_options = options;
 
-    // 更新下拉选项
-    item.dropdown_options = options;
+        // 更新表单时间戳
+        form.touch();
 
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 显式结束 form 借用
-    drop(form);
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+        Ok(())
+    }).map_err(|e| e.to_string())
 }
 
 /// 切换下拉/手动模式
@@ -539,42 +431,28 @@ pub async fn toggle_dropdown_mode(
     use_dropdown: bool,
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
-    // 加载项目
-    let mut project = storage.load_project(&project_id).map_err(|e| e.to_string())?;
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找表单
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
 
-    // 查找表单
-    let form = project
-        .get_form_mut(&form_id)
-        .ok_or_else(|| format!("表单未找到: {}", form_id))?;
+        // 查找表单项
+        let item = form
+            .get_item_mut(&item_id)
+            .ok_or_else(|| crate::error::AppError::FormItemNotFound(item_id.clone()))?;
 
-    // 查找表单项
-    let item = form
-        .items
-        .iter_mut()
-        .find(|i| i.id == item_id)
-        .ok_or_else(|| format!("表单项未找到: {}", item_id))?;
+        // 切换模式
+        item.use_dropdown = use_dropdown;
 
-    // 切换模式
-    item.use_dropdown = use_dropdown;
+        // 如果切换到下拉模式且没有选项,添加默认选项
+        if use_dropdown && item.dropdown_options.is_empty() {
+            item.dropdown_options = vec![item.content.clone()];
+        }
 
-    // 如果切换到下拉模式且没有选项，添加默认选项
-    if use_dropdown && item.dropdown_options.is_empty() {
-        item.dropdown_options = vec![item.content.clone()];
-    }
+        // 更新表单时间戳
+        form.touch();
 
-    // 更新表单时间戳
-    form.updated_at = chrono::Utc::now().to_rfc3339();
-
-    // 显式结束 form 借用
-    drop(form);
-
-    // 更新项目时间戳
-    project.touch();
-
-    // 保存项目
-    storage
-        .save_project(&project)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+        Ok(())
+    }).map_err(|e| e.to_string())
 }

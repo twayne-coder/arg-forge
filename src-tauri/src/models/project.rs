@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use uuid::Uuid;
+use crate::error::AppError;
 
 /// 表单项类型枚举
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -9,6 +10,18 @@ pub enum ItemType {
     Command,
     /// 参数项：需要格式化的参数
     Parameter,
+}
+
+impl std::str::FromStr for ItemType {
+    type Err = AppError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "Command" => Ok(Self::Command),
+            "Parameter" => Ok(Self::Parameter),
+            _ => Err(AppError::InvalidArgument(format!("无效的项类型: {}", s))),
+        }
+    }
 }
 
 /// 参数风格枚举
@@ -26,6 +39,19 @@ pub enum ParamStyle {
     /// ValueOnly 风格：只有值，没有键
     /// 示例：0.001 32
     ValueOnly,
+}
+
+impl std::str::FromStr for ParamStyle {
+    type Err = AppError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "KeyValue" => Ok(Self::KeyValue),
+            "EqualValue" => Ok(Self::EqualValue),
+            "ValueOnly" => Ok(Self::ValueOnly),
+            _ => Err(AppError::InvalidArgument(format!("无效的参数风格: {}", s))),
+        }
+    }
 }
 
 /// 表单项
@@ -118,6 +144,38 @@ impl Default for Form {
             updated_at: chrono::Utc::now().to_rfc3339(),
             items: Vec::new(),
         }
+    }
+}
+
+impl Form {
+    /// 获取表单项的可变引用
+    /// # 参数
+    /// * `item_id` - 表单项 ID
+    /// # 返回
+    /// * `Some(&mut FormItem)` - 找到表单项
+    /// * `None` - 未找到指定 ID 的表单项
+    pub fn get_item_mut(&mut self, item_id: &str) -> Option<&mut FormItem> {
+        self.items.iter_mut().find(|i| i.id == item_id)
+    }
+
+    /// 删除表单项
+    /// # 参数
+    /// * `item_id` - 表单项 ID
+    /// # 返回
+    /// * `Some(FormItem)` - 找到并删除的表单项
+    /// * `None` - 未找到指定 ID 的表单项
+    pub fn remove_item(&mut self, item_id: &str) -> Option<FormItem> {
+        if let Some(pos) = self.items.iter().position(|i| i.id == item_id) {
+            Some(self.items.remove(pos))
+        } else {
+            None
+        }
+    }
+
+    /// 更新时间戳
+    /// 将 updated_at 设置为当前时间
+    pub fn touch(&mut self) {
+        self.updated_at = chrono::Utc::now().to_rfc3339();
     }
 }
 
