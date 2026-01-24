@@ -47,7 +47,7 @@
                 v-for="form in forms"
                 :key="form.id"
                 :form="form"
-                :active="currentFormId === form.id"
+                :active="currentForm?.id === form.id"
                 @click="selectForm(form.id)"
               />
               <div
