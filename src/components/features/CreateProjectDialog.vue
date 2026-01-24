@@ -66,6 +66,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useProjectStore } from "@/stores/project";
+import { useErrorHandler } from "@/composables/useErrorHandler";
 
 /** 是否打开对话框 */
 const props = defineProps<{
@@ -80,6 +81,9 @@ const emit = defineEmits<{
 
 /** 项目 store */
 const projectStore = useProjectStore();
+
+/** 错误处理器 */
+const { handleError } = useErrorHandler();
 
 /** 表单数据 */
 const formData = ref({
@@ -131,22 +135,7 @@ async function handleSubmit() {
     emit("update:open", false);
     emit("success");
   } catch (error) {
-    console.error("[Dialog] ===== 创建项目失败 =====");
-    console.error("[Dialog] 错误对象:", error);
-    console.error("[Dialog] 错误名称:", error instanceof Error ? error.name : "未知");
-    console.error("[Dialog] 错误消息:", error instanceof Error ? error.message : String(error));
-    console.error("[Dialog] 错误堆栈:", error instanceof Error ? error.stack : "无堆栈");
-
-    // 显示用户友好的错误提示
-    let errorMsg = "未知错误";
-    if (error instanceof Error) {
-      errorMsg = error.message;
-    } else if (typeof error === "string") {
-      errorMsg = error;
-    } else {
-      errorMsg = JSON.stringify(error);
-    }
-    alert(`创建项目失败:\n${errorMsg}\n\n请查看浏览器控制台和后端日志获取详细信息。`);
+    handleError(error, "创建项目");
   } finally {
     loading.value = false;
   }

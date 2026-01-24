@@ -35,17 +35,6 @@ function getIcon(type: Toast["type"]) {
   return icons[type];
 }
 
-/**
- * 处理移除动画
- */
-async function handleRemove(id: string) {
-  removingIds.value.add(id);
-  // 等待 CSS 淡出动画完成（300ms）
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  store.removeToast(id);
-  removingIds.value.delete(id);
-}
-
 // 监听 store 中的 toasts 变化，同步移除本地状态
 watch(
   () => store.toasts,

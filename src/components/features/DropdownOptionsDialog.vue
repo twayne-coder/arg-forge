@@ -99,7 +99,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, XIcon } from "lucide-vue-next";
-import { useProjectStore } from "@/stores/project";
+import { useFormItems } from "@/composables/useFormItems";
 import type { FormItem } from "@/types/bindings";
 
 /** 组件属性 */
@@ -113,8 +113,8 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
-/** 项目 store */
-const store = useProjectStore();
+/** 表单项操作 */
+const { updateDropdownOptions } = useFormItems();
 
 /** 本地选项列表 (用于编辑) */
 const localOptions = ref<string[]>([]);
@@ -165,7 +165,7 @@ async function handleSave() {
   // 过滤空选项
   const options = localOptions.value.filter(opt => opt.trim() !== "");
 
-  await store.updateDropdownOptions(props.item.id, options);
+  await updateDropdownOptions(props.item.id, options);
 
   // 关闭对话框
   emit("update:open", false);

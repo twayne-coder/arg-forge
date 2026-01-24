@@ -77,9 +77,10 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusIcon, FolderOpenIcon, ArrowUpDownIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
+import { PlusIcon, FolderOpenIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import { useUiStore } from "@/stores/ui";
+import { useProjectSort } from "@/composables/useProjectSort";
 import ProjectCard from "./ProjectCard.vue";
 import CreateProjectDialog from "./CreateProjectDialog.vue";
 import EditProjectDialog from "./EditProjectDialog.vue";
@@ -93,6 +94,9 @@ const projectStore = useProjectStore();
 
 /** UI store */
 const uiStore = useUiStore();
+
+/** 排序配置 */
+const { sortConfig } = useProjectSort();
 
 /** 是否显示新建对话框 */
 const showCreateDialog = ref(false);
@@ -112,12 +116,9 @@ const projects = computed(() => projectStore.sortedProjects);
 /** 是否有项目 */
 const hasProjects = computed(() => projectStore.hasProjects);
 
-/** 排序配置 */
-const sortConfig = computed(() => projectStore.sortConfig);
-
 /** 排序按钮文本 */
 const sortButtonText = computed(() => {
-  const { sortBy, order } = sortConfig.value;
+  const { sortBy, order } = sortConfig;
   const field = sortBy === 'created_at' ? '创建时间' : '修改时间';
   const direction = order === 'asc' ? '正序' : '降序';
   return `${field}${direction}`;
@@ -125,7 +126,7 @@ const sortButtonText = computed(() => {
 
 /** 排序方向图标 */
 const sortDirectionIcon = computed(() => {
-  return sortConfig.value.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+  return sortConfig.order === 'asc' ? ArrowUpIcon : ArrowDownIcon;
 });
 
 /** 初始化 */

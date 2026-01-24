@@ -66,6 +66,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useProjectStore } from "@/stores/project";
+import { useFormStore } from "@/stores/form";
 import type { Form } from "@/types/bindings";
 
 /** 是否打开对话框 */
@@ -82,6 +83,9 @@ const emit = defineEmits<{
 
 /** 项目 store */
 const projectStore = useProjectStore();
+
+/** 表单 store */
+const formStore = useFormStore();
 
 /** 表单数据 */
 const formData = ref({
@@ -110,11 +114,11 @@ watch(() => props.open, (isOpen) => {
 
 /** 处理表单提交 */
 async function handleSubmit() {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value || !projectStore.currentProject) return;
 
   loading.value = true;
   try {
-    await projectStore.updateForm(props.form.id, {
+    await formStore.updateForm(projectStore.currentProject.id, props.form.id, {
       name: formData.value.name.trim(),
       description: formData.value.description.trim(),
     });

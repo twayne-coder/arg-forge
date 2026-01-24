@@ -116,6 +116,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeftIcon, EditIcon, PlusIcon, FileTextIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
+import { useFormStore } from "@/stores/form";
 import FormListItem from "./FormListItem.vue";
 import FormDetailEditor from "./FormDetailEditor.vue";
 import CreateFormDialog from "./CreateFormDialog.vue";
@@ -130,6 +131,9 @@ const router = useRouter();
 /** 项目 store */
 const projectStore = useProjectStore();
 
+/** 表单 store */
+const formStore = useFormStore();
+
 /** 当前项目 ID */
 const projectId = computed(() => route.params.id as string);
 
@@ -140,7 +144,7 @@ const project = computed(() => projectStore.currentProject);
 const forms = computed(() => project.value?.forms || []);
 
 /** 当前表单 ID */
-const currentFormId = computed(() => projectStore.currentForm?.id);
+const currentFormId = computed(() => formStore.currentForm?.id);
 
 /** 当前表单 */
 const currentForm = computed(() => {
@@ -168,14 +172,14 @@ onMounted(async () => {
 /** 离开页面前清理状态 */
 onBeforeRouteLeave(() => {
   // 清空当前项目和表单状态，避免状态残留导致闪烁
-  projectStore.currentProject = null;
-  projectStore.setCurrentForm(null);
+  projectStore.$reset();
+  formStore.setCurrentForm(null);
 });
 
 /** 加载项目数据 */
 async function loadProject() {
   try {
-    await projectStore.loadProject(projectId.value);
+    await projectStore.setCurrentProject(projectId.value);
   } catch (error) {
     console.error("加载项目失败:", error);
     // 如果加载失败,返回项目列表
@@ -192,7 +196,7 @@ function goBack() {
 function selectForm(formId: string) {
   const form = forms.value.find(f => f.id === formId);
   if (form) {
-    projectStore.setCurrentForm(form);
+    formStore.setCurrentForm(form);
   }
 }
 
@@ -217,7 +221,7 @@ function openEditProjectDialog() {
 /** 表单操作成功后的处理 */
 async function handleFormSuccess() {
   // 保存当前表单 ID
-  const savedFormId = projectStore.currentForm?.id;
+  const savedFormId = formStore.currentForm?.id;
 
   // 重新加载项目数据
   await loadProject();
@@ -226,7 +230,7 @@ async function handleFormSuccess() {
   if (savedFormId) {
     const formToRestore = forms.value.find(f => f.id === savedFormId);
     if (formToRestore) {
-      projectStore.setCurrentForm(formToRestore);
+      formStore.setCurrentForm(formToRestore);
     }
   }
 }
@@ -234,7 +238,7 @@ async function handleFormSuccess() {
 /** 项目更新后的处理 */
 async function handleProjectUpdated() {
   // 保存当前表单 ID
-  const savedFormId = projectStore.currentForm?.id;
+  const savedFormId = formStore.currentForm?.id;
 
   // 重新加载项目数据
   await loadProject();
@@ -243,7 +247,7 @@ async function handleProjectUpdated() {
   if (savedFormId) {
     const formToRestore = forms.value.find(f => f.id === savedFormId);
     if (formToRestore) {
-      projectStore.setCurrentForm(formToRestore);
+      formStore.setCurrentForm(formToRestore);
     }
   }
 }

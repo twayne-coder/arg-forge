@@ -5,6 +5,7 @@
 
 import { ref, watch, computed } from "vue";
 import { useProjectStore } from "@/stores/project";
+import { useFormStore } from "@/stores/form";
 import { generateCommand } from "@/api/command";
 
 /**
@@ -15,6 +16,9 @@ export function useCommandPreview() {
   /** 项目 store */
   const projectStore = useProjectStore();
 
+  /** 表单 store */
+  const formStore = useFormStore();
+
   /** 生成的命令字符串 */
   const commandPreview = ref("");
 
@@ -22,7 +26,7 @@ export function useCommandPreview() {
   const projectId = computed(() => projectStore.currentProject?.id);
 
   /** 当前表单 ID */
-  const formId = computed(() => projectStore.currentForm?.id);
+  const formId = computed(() => formStore.currentForm?.id);
 
   /**
    * 生成命令
@@ -45,7 +49,7 @@ export function useCommandPreview() {
    * 监听表单变化，自动更新命令预览
    */
   watch(
-    () => projectStore.currentForm,
+    () => formStore.currentForm,
     () => {
       generateCommandPreview();
     },

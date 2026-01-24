@@ -182,8 +182,8 @@ import {
   TerminalIcon,
   SlidersIcon,
 } from "lucide-vue-next";
-import { useProjectStore } from "@/stores/project";
-import type { FormItem } from "@/types/bindings";
+import { useFormItems } from "@/composables/useFormItems";
+import type { FormItem, FormItemFieldValue } from "@/types/bindings";
 
 /** 组件属性 */
 const props = defineProps<{
@@ -196,22 +196,43 @@ defineEmits<{
   delete: [itemId: string];
 }>();
 
-/** 项目 store */
-const store = useProjectStore();
+/** 表单项操作 */
+const { updateFormItem, toggleDropdownMode } = useFormItems();
 
 /**
  * 更新表单项字段
  * @param field - 字段名
  * @param value - 新值
  */
-async function handleUpdate(field: string, value: any) {
-  await store.updateFormItem(props.item.id, field, value);
+async function handleUpdate(field: string, value: unknown) {
+  // 将 value 转换为 FormItemFieldValue 类型
+  let convertedValue: FormItemFieldValue;
+
+  if (value === null || value === undefined) {
+    // 对于 null/undefined 值，使用空字符串
+    convertedValue = "";
+  } else if (typeof value === "number") {
+    // 将数字转换为字符串
+    convertedValue = String(value);
+  } else if (
+    typeof value === "string" ||
+    typeof value === "boolean" ||
+    Array.isArray(value)
+  ) {
+    // 已经是有效的 FormItemFieldValue 类型
+    convertedValue = value as FormItemFieldValue;
+  } else {
+    // 其他类型转换为字符串
+    convertedValue = String(value);
+  }
+
+  await updateFormItem(props.item.id, field, convertedValue);
 }
 
 /**
  * 切换下拉模式
  */
 async function toggleDropdown() {
-  await store.toggleDropdownMode(props.item.id, !props.item.use_dropdown);
+  await toggleDropdownMode(props.item.id, !props.item.use_dropdown);
 }
 </script>
