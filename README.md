@@ -74,7 +74,7 @@ ArgForge 是一款桌面应用程序，旨在通过可视化表单界面简化�
 
 ```bash
 # 克隆项目
-git clone https://github.com/yourusername/arg-forge.git
+git clone https://github.com/twayne-coder/arg-forge.git
 cd arg-forge
 
 # 安装依赖
