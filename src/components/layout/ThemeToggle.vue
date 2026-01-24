@@ -19,10 +19,10 @@ const title = computed(() => {
 		class="flex h-full w-11 items-center justify-center text-foreground/80 hover:bg-muted hover:text-foreground transition-colors"
 		:title="title"
 	>
-		<!-- 浅色模式显示月亮图标 -->
-		<Moon v-if="!isDark" :size="14" />
+		<!-- 浅色模式显示太阳图标 -->
+		<Sun v-if="!isDark" :size="14" />
 
-		<!-- 深色模式显示太阳图标 -->
-		<Sun v-else :size="14" />
+		<!-- 深色模式显示月亮图标 -->
+		<Moon v-else :size="14" />
 	</button>
 </template>
