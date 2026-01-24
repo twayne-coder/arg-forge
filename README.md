@@ -129,15 +129,10 @@ arg-forge/
 
 > 简洁的 Windows 11 风格设计，支持自定义标题栏、Segoe UI 字体、圆角元素
 
----
-
-## 路线图
-
-- [ ] 命令执行历史记录
-- [ ] 参数校验规则
-- [ ] 导出/导入项目配置
-- [ ] 环境变量支持
-- [ ] 多语言支持
+<img src="pic/PixPin_2026-01-25_02-09-41.jpg" alt="alt text" style="zoom:40%;" />
+<img src="pic/PixPin_2026-01-25_02-12-04.jpg" alt="alt text" style="zoom:40%;" />
+<img src="pic/PixPin_2026-01-25_02-12-47.jpg" alt="alt text" style="zoom:40%;" />
+<img src="pic/PixPin_2026-01-25_02-13-03.jpg" alt="alt text" style="zoom:40%" />
 
 ---
 
@@ -152,3 +147,4 @@ MIT License
 - [Tauri](https://tauri.app/) - 跨平台桌面应用框架
 - [Vue.js](https://vuejs.org/) - 渐进式前端框架
 - [Shadcn-vue](https://www.shadcn-vue.com/) - Vue 组件库
+- [ClaudeCode](https://code.claude.com/docs/en/overview) - 编程Agent
