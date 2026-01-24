@@ -31,7 +31,7 @@
     <!-- 分割器布局 -->
     <Splitpanes class="flex-1 overflow-hidden">
       <!-- 左侧: 表单列表 -->
-      <Pane :size="30" :min-size="15" :max-size="50">
+      <Pane :size="25" :min-size="15" :max-size="50">
         <aside class="form-list-panel h-full bg-card flex flex-col">
           <div class="p-4 border-b">
             <div class="flex items-center justify-between">
@@ -62,7 +62,7 @@
       </Pane>
 
       <!-- 右侧: 表单详情 -->
-      <Pane :size="70" :min-size="40">
+      <Pane :size="75" :min-size="40">
         <main class="form-detail-panel h-full bg-background">
           <FormDetailEditor
             v-if="currentForm"

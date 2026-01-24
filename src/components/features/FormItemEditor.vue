@@ -25,7 +25,7 @@
       :model-value="item.item_type"
       @update:model-value="handleUpdate('item_type', $event)"
     >
-      <SelectTrigger class="w-[110px]">
+      <SelectTrigger class="w-[75px]">
         <SelectValue placeholder="类型" />
       </SelectTrigger>
       <SelectContent>
@@ -76,7 +76,7 @@
         :model-value="item.param_style"
         @update:model-value="handleUpdate('param_style', $event)"
       >
-        <SelectTrigger class="w-[130px]">
+        <SelectTrigger class="w-[115px]">
           <SelectValue placeholder="风格" />
         </SelectTrigger>
         <SelectContent>
