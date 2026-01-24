@@ -29,17 +29,17 @@ use crate::services::StorageService;
 ///
 /// # 示例
 /// ```no_run
-/// use crate::services::project_transaction::with_project_mut;
+/// use arg_forge_lib::{with_project_mut, Form};
 ///
 /// # let storage = unimplemented!();
 /// // 修改项目名称
-/// let result = with_project_mut(&storage, "project-id", |project| {
+/// let result = with_project_mut(&storage, "project-id", |project: &mut arg_forge_lib::Project| {
 ///     project.name = "新名称".to_string();
 ///     Ok(())
 /// });
 ///
 /// // 添加表单并返回
-/// let form = with_project_mut(&storage, "project-id", |project| {
+/// let form = with_project_mut(&storage, "project-id", |project: &mut arg_forge_lib::Project| {
 ///     let new_form = Form::default();
 ///     project.add_form(new_form.clone());
 ///     Ok(new_form)

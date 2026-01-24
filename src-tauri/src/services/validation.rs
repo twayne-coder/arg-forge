@@ -16,8 +16,8 @@ use uuid::Uuid;
 /// 成功时返回解析后的 Uuid 对象，失败时返回错误
 ///
 /// # 示例
-/// ```rust
-/// use crate::services::validation::validate_project_id;
+/// ```
+/// use arg_forge_lib::validate_project_id;
 ///
 /// // 有效的 UUID
 /// assert!(validate_project_id("550e8400-e29b-41d4-a716-446655440000").is_ok());

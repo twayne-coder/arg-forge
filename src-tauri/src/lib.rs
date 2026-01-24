@@ -9,6 +9,10 @@ pub use error::{AppError, Result};
 pub use models::{Form, FormItem, ParamStyle, Project};
 pub use services::{CommandService, StorageService};
 
+// 导出公共服务函数（供文档测试使用）
+pub use services::project_transaction::with_project_mut;
+pub use services::validation::validate_project_id;
+
 use tauri::Manager;
 use tracing_subscriber::{fmt, EnvFilter, prelude::*};
 

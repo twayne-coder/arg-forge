@@ -10,7 +10,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "version": "node scripts/sync-version.js && git add src-tauri/tauri.conf.json src-tauri/Cargo.toml"
+    "version": "node scripts/sync-version.js && git add src-tauri/tauri.conf.json src-tauri/Cargo.toml",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -32,6 +33,7 @@
     "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.23",
+    "husky": "^9.1.7",
     "kill-port": "^2.0.1",
     "postcss": "^8.5.6",
     "shadcn-vue": "^2.4.3",
