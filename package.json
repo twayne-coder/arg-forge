@@ -1,7 +1,7 @@
 {
   "name": "arg-forge",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "predev": "cargo fmt --manifest-path src-tauri/Cargo.toml && kill-port 1420",
