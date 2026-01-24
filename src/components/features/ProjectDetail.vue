@@ -5,7 +5,7 @@
       <div class="flex items-center gap-2">
         <Button variant="ghost" size="sm" @click="goBack">
           <ArrowLeftIcon class="h-4 w-4 mr-1" />
-          返回
+          {{ $t('common.back') }}
         </Button>
         <Separator orientation="vertical" class="h-6" />
         <div class="flex items-center gap-2">
@@ -13,7 +13,7 @@
             <h1 class="text-lg font-semibold">{{ project?.name }}</h1>
             <div class="flex items-center gap-2">
               <p v-if="project" class="text-xs text-muted-foreground">
-                {{ project.forms.length }} 个表单
+                {{ $t('project.formCount', { count: project.forms.length }) }}
               </p>
               <p v-if="project?.description" class="text-xs text-muted-foreground">
                 {{ project.description }}
@@ -24,7 +24,7 @@
       </div>
       <Button variant="ghost" size="sm" @click="openEditProjectDialog">
         <EditIcon class="h-4 w-4 mr-1" />
-        编辑项目
+        {{ $t('project.edit') }}
       </Button>
     </header>
 
@@ -35,7 +35,7 @@
         <aside class="form-list-panel h-full bg-card flex flex-col">
           <div class="p-4 border-b">
             <div class="flex items-center justify-between">
-              <h2 class="font-medium">表单列表</h2>
+              <h2 class="font-medium">{{ $t('form.list') }}</h2>
               <Button size="sm" @click="openCreateFormDialog">
                 <PlusIcon class="h-4 w-4" />
               </Button>
@@ -54,7 +54,7 @@
                 v-if="forms.length === 0"
                 class="text-center py-8 text-sm text-muted-foreground"
               >
-                暂无表单
+                {{ $t('form.noForm') }}
               </div>
             </div>
           </ScrollArea>
@@ -75,7 +75,7 @@
           >
             <div class="text-center">
               <FileTextIcon class="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p class="text-sm">选择一个表单查看详情</p>
+              <p class="text-sm">{{ $t('form.selectHint') }}</p>
             </div>
           </div>
         </main>

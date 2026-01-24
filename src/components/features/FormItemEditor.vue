@@ -25,19 +25,19 @@
       @update:model-value="handleUpdate('item_type', $event)"
     >
       <SelectTrigger class="w-[75px]">
-        <SelectValue placeholder="类型" />
+        <SelectValue :placeholder="$t('formItem.type')" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="Command">
           <div class="flex items-center gap-2">
             <TerminalIcon class="h-3.5 w-3.5 text-emerald-600" />
-            <span>命令</span>
+            <span>{{ $t('formItem.command') }}</span>
           </div>
         </SelectItem>
         <SelectItem value="Parameter">
           <div class="flex items-center gap-2">
             <SlidersIcon class="h-3.5 w-3.5" />
-            <span>参数</span>
+            <span>{{ $t('formItem.parameter') }}</span>
           </div>
         </SelectItem>
       </SelectContent>
@@ -49,7 +49,7 @@
         <Input
           :model-value="item.content"
           @update:model-value="handleUpdate('content', $event)"
-          placeholder="命令内容（如 python train.py）"
+          :placeholder="$t('formItem.contentPlaceholder')"
           class="font-mono text-sm"
         />
       </div>
@@ -65,7 +65,7 @@
         <Input
           :model-value="item.param_name"
           @update:model-value="handleUpdate('param_name', $event)"
-          placeholder="参数名"
+          :placeholder="$t('formItem.paramNamePlaceholder')"
           class="font-mono text-sm"
         />
       </div>
@@ -76,17 +76,17 @@
         @update:model-value="handleUpdate('param_style', $event)"
       >
         <SelectTrigger class="w-[115px]">
-          <SelectValue placeholder="风格" />
+          <SelectValue :placeholder="$t('formItem.paramStyle')" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="KeyValue">
-            <span class="font-mono text-xs">--key value</span>
+            <span class="font-mono text-xs">{{ $t('paramStyle.keyValue') }}</span>
           </SelectItem>
           <SelectItem value="EqualValue">
-            <span class="font-mono text-xs">key=value</span>
+            <span class="font-mono text-xs">{{ $t('paramStyle.equalValue') }}</span>
           </SelectItem>
           <SelectItem value="ValueOnly">
-            <span class="font-mono text-xs">value</span>
+            <span class="font-mono text-xs">{{ $t('paramStyle.valueOnly') }}</span>
           </SelectItem>
         </SelectContent>
       </Select>
@@ -99,7 +99,7 @@
             @update:model-value="handleUpdate('content', $event)"
           >
             <SelectTrigger class="w-full">
-              <SelectValue placeholder="选择值" />
+              <SelectValue :placeholder="$t('formItem.selectValue')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
@@ -116,7 +116,7 @@
           <Input
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
-            placeholder="参数值"
+            :placeholder="$t('formItem.paramValuePlaceholder')"
             class="text-sm"
           />
         </template>
@@ -130,7 +130,7 @@
       size="sm"
       @click="$emit('open-dropdown-options', item)"
       class="shrink-0"
-      title="管理下拉选项"
+      :title="$t('formItem.manageDropdown')"
     >
       <SettingsIcon class="h-4 w-4" />
     </Button>
@@ -145,7 +145,7 @@
         'shrink-0',
         item.use_dropdown && 'bg-primary/10 text-primary hover:bg-primary/20'
       ]"
-      title="切换下拉模式"
+      :title="$t('formItem.toggleDropdown')"
     >
       <ListIcon class="h-4 w-4" />
     </Button>
@@ -156,7 +156,7 @@
       size="sm"
       @click="$emit('delete', item.id)"
       class="shrink-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
-      title="删除"
+      :title="$t('formItem.delete')"
     >
       <TrashIcon class="h-4 w-4" />
     </Button>

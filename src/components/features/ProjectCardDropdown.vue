@@ -12,16 +12,16 @@
     <DropdownMenuContent>
       <DropdownMenuItem @click="handleEdit">
         <PencilIcon class="mr-2 h-4 w-4" />
-        编辑
+        {{ $t('common.edit') }}
       </DropdownMenuItem>
       <DropdownMenuItem @click="handleDuplicate">
         <CopyIcon class="mr-2 h-4 w-4" />
-        复制
+        {{ $t('common.duplicate') }}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem @click="handleDelete" class="text-destructive">
         <TrashIcon class="mr-2 h-4 w-4" />
-        删除
+        {{ $t('common.delete') }}
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

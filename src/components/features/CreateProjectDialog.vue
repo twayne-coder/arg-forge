@@ -2,20 +2,20 @@
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>新建项目</DialogTitle>
+        <DialogTitle>{{ $t('project.create') }}</DialogTitle>
         <DialogDescription>
-          创建一个新的命令配置项目
+          {{ $t('project.createDescription') }}
         </DialogDescription>
       </DialogHeader>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <!-- 项目名称 -->
         <div class="space-y-2">
-          <Label for="name">项目名称 <span class="text-destructive">*</span></Label>
+          <Label for="name">{{ $t('project.name') }} <span class="text-destructive">*</span></Label>
           <Input
             id="name"
             v-model="formData.name"
-            placeholder="例如：模型训练配置"
+            :placeholder="$t('project.namePlaceholder')"
             required
             :disabled="loading"
           />
@@ -23,11 +23,11 @@
 
         <!-- 项目描述 -->
         <div class="space-y-2">
-          <Label for="description">项目描述</Label>
+          <Label for="description">{{ $t('project.description') }}</Label>
           <Textarea
             id="description"
             v-model="formData.description"
-            placeholder="简要描述此项目的用途..."
+            :placeholder="$t('project.descriptionPlaceholder')"
             rows="3"
             :disabled="loading"
           />
@@ -40,10 +40,10 @@
             @click="emit('update:open', false)"
             :disabled="loading"
           >
-            取消
+            {{ $t('common.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading || !isFormValid">
-            {{ loading ? "创建中..." : "创建" }}
+            {{ loading ? $t('project.creating') : $t('common.create') }}
           </Button>
         </DialogFooter>
       </form>

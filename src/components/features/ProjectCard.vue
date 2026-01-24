@@ -9,13 +9,13 @@
         <ProjectCardDropdown :project="project" @click.stop />
       </CardTitle>
       <CardDescription class="line-clamp-3">
-        {{ project.description || "暂无描述" }}
+        {{ project.description || $t('project.noDescription') }}
       </CardDescription>
     </CardHeader>
     <CardContent>
       <div class="flex items-center gap-2 text-sm text-muted-foreground">
         <FolderOpenIcon class="h-4 w-4" />
-        <span>{{ project.forms.length }} 个表单</span>
+        <span>{{ $t('project.formCount', { count: project.forms.length }) }}</span>
       </div>
     </CardContent>
   </Card>

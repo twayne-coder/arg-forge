@@ -11,7 +11,7 @@
               {{ form.description }}
             </CardDescription>
             <p class="text-xs text-muted-foreground mt-2">
-              更新于 {{ formatTime(form.updated_at) }}
+              {{ $t('form.updatedAt') }} {{ formatTime(form.updated_at) }}
             </p>
           </div>
           <Button variant="ghost" size="sm" @click="$emit('edit')">
@@ -28,10 +28,10 @@
         <!-- 表单项列表 -->
         <div>
           <CardTitle class="text-sm font-medium mb-4">
-            表单项 ({{ form.items.length }})
+            {{ $t('formItem.title') }} ({{ form.items.length }})
           </CardTitle>
           <div v-if="form.items.length === 0" class="text-center py-8 text-muted-foreground">
-            暂无表单项
+            {{ $t('formItem.noItems') }}
           </div>
           <div v-else class="space-y-3">
               <div
@@ -55,14 +55,14 @@
                             item.enabled ? 'text-foreground' : 'text-muted-foreground'
                           ]"
                         >
-                          {{ item.content || '(空命令)' }}
+                          {{ item.content || $t('formItem.emptyCommand') }}
                         </span>
                       </div>
                       <div
                         v-if="item.use_dropdown && item.dropdown_options.length > 0"
                         class="text-xs text-muted-foreground mt-1"
                       >
-                        可选值: {{ item.dropdown_options.join(", ") }}
+                        {{ $t('formItem.optionalValues', { values: item.dropdown_options.join(", ") }) }}
                       </div>
                     </template>
 
@@ -77,7 +77,7 @@
                             item.enabled ? 'text-foreground' : 'text-muted-foreground'
                           ]"
                         >
-                          {{ item.param_name || '(未命名)' }}
+                          {{ item.param_name || $t('formItem.unnamed') }}
                         </span>
                         <Badge
                           :variant="getParamStyleVariant(item.param_style)"
@@ -90,13 +90,13 @@
                         v-if="item.content"
                         class="text-sm text-muted-foreground mt-1"
                       >
-                        值: {{ item.content }}
+                        {{ $t('formItem.paramValue') }}: {{ item.content }}
                       </div>
                       <div
                         v-if="item.use_dropdown && item.dropdown_options.length > 0"
                         class="text-xs text-muted-foreground mt-1"
                       >
-                        可选值: {{ item.dropdown_options.join(", ") }}
+                        {{ $t('formItem.optionalValues', { values: item.dropdown_options.join(", ") }) }}
                       </div>
                     </template>
                   </div>
@@ -114,6 +114,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -121,6 +122,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { EditIcon, TerminalIcon, SlidersIcon } from "lucide-vue-next";
 import type { Form, ParamStyle } from "@/types/bindings";
+
+const { t } = useI18n();
 
 /** 组件属性 */
 defineProps<{
@@ -148,13 +151,13 @@ function formatTime(dateStr: string): string {
 function getParamStyleLabel(style: ParamStyle): string {
   switch (style) {
     case "KeyValue":
-      return "--key value";
+      return t('paramStyle.keyValue');
     case "EqualValue":
-      return "key=value";
+      return t('paramStyle.equalValue');
     case "ValueOnly":
-      return "仅值";
+      return t('paramStyle.valueOnly');
     default:
-      return "未知";
+      return "unknown";
   }
 }
 
