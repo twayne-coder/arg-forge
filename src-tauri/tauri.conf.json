@@ -30,7 +30,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": "all",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -39,17 +39,6 @@
       "icons/icon.ico"
     ],
     "publisher": "twayne-coder",
-    "homepage": "https://github.com/twayne-coder/arg-forge",
-    "nsis": {
-      "displayName": "ArgForge",
-      "installMode": "perUser",
-      "allowDowngrades": true,
-      "createDesktopIcon": true,
-      "createStartMenuShortcut": true,
-      "installerIcon": "icons/icon.ico",
-      "uninstallerIcon": "icons/icon.ico",
-      "license": "LICENSE.txt",
-      "languages": ["SimpChinese", "English"]
-    }
+    "homepage": "https://github.com/twayne-coder/arg-forge"
   }
 }
