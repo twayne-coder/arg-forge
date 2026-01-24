@@ -101,7 +101,7 @@
                     </template>
                   </div>
                   <div class="ml-2">
-                    <Switch :checked="item.enabled" disabled class="pointer-events-none" />
+                    <Switch :model-value="item.enabled" disabled class="pointer-events-none" />
                   </div>
                 </div>
               </div>
