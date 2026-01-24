@@ -32,10 +32,10 @@ jobs:
         with:
           targets: ${{ matrix.platform.target }}
 
-      # - name: Rust cache
-      #   uses: swatinem/rust-cache@v2
-      #   with:
-      #     workspaces: "./src-tauri -> target"
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
