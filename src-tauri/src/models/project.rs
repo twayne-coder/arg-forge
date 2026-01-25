@@ -56,10 +56,11 @@ impl std::str::FromStr for ParamStyle {
 
 /// 命令格式枚举
 /// 定义命令输出的显示格式
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Default)]
 pub enum CommandFormat {
     /// 单行格式：用空格连接所有参数
     /// 示例：python train.py --lr 0.001 --batch-size 32
+    #[default]
     SingleLine,
 
     /// 多行格式：每个参数后跟 \ 然后换行
@@ -68,12 +69,6 @@ pub enum CommandFormat {
     /// --lr 0.001 \
     /// --batch-size 32
     MultiLine,
-}
-
-impl Default for CommandFormat {
-    fn default() -> Self {
-        Self::SingleLine
-    }
 }
 
 impl std::str::FromStr for CommandFormat {
