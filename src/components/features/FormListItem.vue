@@ -11,7 +11,7 @@
       <div class="flex-1 min-w-0">
         <h3
           :class="[
-            'font-medium truncate',
+            'font-medium text-sm truncate',
             active ? 'text-primary' : 'text-foreground'
           ]"
         >

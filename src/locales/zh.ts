@@ -95,6 +95,8 @@ export default {
 		optionalValues: "可选值: {values}",
 		emptyCommand: "(空命令)",
 		unnamed: "(未命名)",
+		cmd: "命令",
+		param: "参数",
 	},
 
 	// 下拉选项
@@ -122,6 +124,8 @@ export default {
 		copySuccess: "命令已复制",
 		copyFailed: "复制失败",
 		emptyHint: "添加参数后自动生成命令",
+		singleLine: "单行",
+		multiLine: "多行",
 	},
 
 	// 窗口控制
