@@ -54,6 +54,34 @@ impl std::str::FromStr for ParamStyle {
     }
 }
 
+/// 命令格式枚举
+/// 定义命令输出的显示格式
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub enum CommandFormat {
+    /// 单行格式：用空格连接所有参数
+    /// 示例：python train.py --lr 0.001 --batch-size 32
+    SingleLine,
+
+    /// 多行格式：每个参数后跟 \ 然后换行
+    /// 示例：
+    /// python train.py \
+    /// --lr 0.001 \
+    /// --batch-size 32
+    MultiLine,
+}
+
+impl std::str::FromStr for CommandFormat {
+    type Err = AppError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "SingleLine" => Ok(Self::SingleLine),
+            "MultiLine" => Ok(Self::MultiLine),
+            _ => Err(AppError::InvalidArgument(format!("无效的命令格式: {}", s))),
+        }
+    }
+}
+
 /// 表单项
 /// 代表单个命令或参数配置
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -132,6 +160,10 @@ pub struct Form {
     /// 表单项列表
     /// 按顺序排列的所有命令和参数配置
     pub items: Vec<FormItem>,
+
+    /// 命令格式
+    /// 决定生成命令时的显示格式
+    pub command_format: CommandFormat,
 }
 
 impl Default for Form {
@@ -143,6 +175,7 @@ impl Default for Form {
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
             items: Vec::new(),
+            command_format: CommandFormat::SingleLine,
         }
     }
 }

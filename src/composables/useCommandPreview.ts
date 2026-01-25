@@ -49,7 +49,7 @@ export function useCommandPreview() {
    * 监听表单变化，自动更新命令预览
    */
   watch(
-    () => formStore.currentForm,
+    () => formStore.currentForm?.items,
     () => {
       generateCommandPreview();
     },

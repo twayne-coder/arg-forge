@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::models::{Form, FormItem, ItemType, ParamStyle};
+use crate::models::{CommandFormat, Form, FormItem, ItemType, ParamStyle};
 
 /// 命令生成服务
 /// 负责将表单配置转换为实际的命令行字符串
@@ -16,18 +16,17 @@ impl CommandService {
     /// 1. 过滤出启用的表单项
     /// 2. 过滤出有内容的表单项
     /// 3. 按顺序生成每个表单项的字符串表示
-    /// 4. 用空格拼接所有项
+    /// 4. 根据 form.command_format 选择连接方式
     ///
     /// # 示例
     /// ```text
-    /// 假设有以下配置:
-    /// - items: [
-    ///     ItemType::Command: "python train.py"
-    ///     ItemType::Parameter (KeyValue): --lr 0.001
-    ///     ItemType::Parameter (EqualValue): batch_size=32
-    ///     ItemType::Parameter (ValueOnly): 100
-    ///   ]
-    /// 生成结果: "python train.py --lr 0.001 batch_size=32 100"
+    /// 单行格式 (SingleLine):
+    /// python train.py --lr 0.001 --batch-size 32
+    ///
+    /// 多行格式 (MultiLine):
+    /// python train.py \
+    /// --lr 0.001 \
+    /// --batch-size 32
     /// ```
     pub fn generate_command(form: &Form) -> Result<String> {
         let mut command_parts = Vec::new();
@@ -51,8 +50,34 @@ impl CommandService {
             }
         }
 
-        // 用空格连接所有部分
-        Ok(command_parts.join(" "))
+        // 根据格式选择连接方式
+        match form.command_format {
+            CommandFormat::SingleLine => {
+                // 单行：用空格连接
+                Ok(command_parts.join(" "))
+            }
+            CommandFormat::MultiLine => {
+                // 多行：每行后加 \ 换行（最后一行不加）
+                if command_parts.is_empty() {
+                    Ok(String::new())
+                } else {
+                    let lines: Vec<String> = command_parts
+                        .iter()
+                        .enumerate()
+                        .map(|(i, part)| {
+                            if i == command_parts.len() - 1 {
+                                // 最后一行不加 \
+                                part.clone()
+                            } else {
+                                // 其他行加 \
+                                format!("{} \\", part)
+                            }
+                        })
+                        .collect();
+                    Ok(lines.join("\n"))
+                }
+            }
+        }
     }
 
     /// 格式化单个表单项
@@ -121,6 +146,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -174,6 +200,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -210,6 +237,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -246,6 +274,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -294,6 +323,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -330,6 +360,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -366,6 +397,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),
@@ -423,6 +455,7 @@ mod tests {
             description: String::new(),
             sort_order: 0,
             updated_at: chrono::Utc::now().to_rfc3339(),
+            command_format: CommandFormat::SingleLine,
             items: vec![
                 FormItem {
                     id: Uuid::new_v4().to_string(),

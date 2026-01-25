@@ -25,24 +25,38 @@
         <div class="px-6 py-4">
           <div class="flex items-center justify-between">
             <CardTitle class="text-sm font-medium">{{ $t('command.title') }}</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="copyCommand"
-              :disabled="!commandPreview"
-              class="h-7 px-2"
-            >
-              <CopyIcon class="h-3.5 w-3.5 mr-1" />
-              {{ $t('command.copy') }}
-            </Button>
+
+            <div class="flex items-center gap-2">
+              <!-- 格式切换按钮 -->
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="toggleFormat"
+                class="h-7 px-2"
+              >
+                <ListIcon class="h-3.5 w-3.5 mr-1" />
+                {{ currentFormatLabel }}
+              </Button>
+
+              <!-- 复制按钮 -->
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="copyCommand"
+                :disabled="!commandPreview"
+                class="h-7 px-2"
+              >
+                <CopyIcon class="h-3.5 w-3.5 mr-1" />
+                {{ $t('command.copy') }}
+              </Button>
+            </div>
           </div>
           <div class="mt-3">
             <code
               v-if="commandPreview"
-              class="block bg-muted p-3 text-sm font-mono break-all rounded-md"
-            >
-              {{ commandPreview }}
-            </code>
+              class="block bg-muted p-3 text-sm font-mono break-all rounded-md whitespace-pre-wrap"
+              v-text="commandPreview"
+            />
             <div
               v-else
               class="text-sm text-muted-foreground text-center py-2"
@@ -141,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import Sortable from "sortablejs";
 import { CardTitle, CardDescription } from "@/components/ui/card";
@@ -153,18 +167,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon } from "lucide-vue-next";
+import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon, ListIcon } from "lucide-vue-next";
 import { useCommandPreview } from "@/composables/useCommandPreview";
 import { useFormItems } from "@/composables/useFormItems";
 import { useUiStore } from "@/stores/ui";
+import { useProjectStore } from "@/stores/project";
+import { useFormStore } from "@/stores/form";
 import FormItemEditor from "./FormItemEditor.vue";
 import DropdownOptionsDialog from "./DropdownOptionsDialog.vue";
-import type { Form, FormItem } from "@/types/bindings";
+import type { CommandFormat, Form, FormItem } from "@/types/bindings";
 
 const { t } = useI18n();
 
 /** 组件属性 */
-defineProps<{
+const props = defineProps<{
   form: Form;
 }>();
 
@@ -181,6 +197,36 @@ const { commandPreview } = useCommandPreview();
 
 /** UI 状态管理 */
 const uiStore = useUiStore();
+
+/** 项目和表单状态管理 */
+const projectStore = useProjectStore();
+const formStore = useFormStore();
+
+/** 当前格式标签 */
+const currentFormatLabel = computed(() => {
+  if (!props.form) return "";
+  return props.form.command_format === "SingleLine" ? "单行" : "多行";
+});
+
+/**
+ * 切换命令格式
+ */
+async function toggleFormat() {
+  if (!props.form || !projectStore.currentProject) return;
+
+  const newFormat: CommandFormat =
+    props.form.command_format === "SingleLine" ? "MultiLine" : "SingleLine";
+
+  try {
+    await formStore.updateCommandFormat(
+      projectStore.currentProject.id,
+      newFormat
+    );
+  } catch (error) {
+    console.error("切换格式失败:", error);
+    uiStore.showToast("切换格式失败", "error");
+  }
+}
 
 /** 列表 DOM 引用 */
 const listRef = ref<HTMLElement | null>(null);
@@ -204,16 +250,30 @@ onMounted(() => {
 
   sortableInstance = Sortable.create(listRef.value, {
     handle: ".drag-handle",
-    animation: 350,
-    easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+
+    // 动画配置
+    animation: 200,
+    easing: "cubic-bezier(0.2, 0, 0.2, 1)",
+
+    // 交换配置
+    swapThreshold: 0.5,
+    invertSwap: false,
+
+    // 样式类名
     ghostClass: "sortable-ghost",
     dragClass: "sortable-drag",
+    fallbackClass: "sortable-fallback",
+
+    // 滚动配置
     scroll: true,
     bubbleScroll: true,
+
+    // Fallback 配置
     forceFallback: true,
-    fallbackClass: 'sortable-fallback',
     fallbackOnBody: true,
-    swapThreshold: 0.65,
+    fallbackTolerance: 5,
+    removeCloneOnHide: false,
+
     onEnd: async (evt) => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
@@ -277,33 +337,49 @@ async function copyCommand() {
 <style scoped>
 /* 拖拽时的占位符样式（原位置） */
 .sortable-ghost {
-  opacity: 0.4;
-  background-color: hsl(var(--accent));
-  border: 2px dashed hsl(var(--primary) / 0.5);
-  transform: scale(0.98);
+  opacity: 0.3;
+  background-color: hsl(var(--accent) / 0.5);
+  border: 2px dashed hsl(var(--primary) / 0.6);
+  transform: scale(0.95);
+  transition: all 200ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 
 /* 正在被拖拽的元素样式 */
 .sortable-drag {
   opacity: 1;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
-  transform: scale(1.02);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
   cursor: grabbing;
+  z-index: 1000;
+  transition: none !important;
 }
 
-/* Fallback 拖拽样式 */
+/* Fallback 拖拽样式（跨浏览器兼容） */
 .sortable-fallback {
-  opacity: 0.9;
+  opacity: 0.95;
   background-color: hsl(var(--card));
-  box-shadow: 0 15px 50px -12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5);
   border-radius: 0.5rem;
   cursor: grabbing;
+  transform: scale(1.05);
 }
 
 /* 所有可拖拽项添加过渡效果 */
 :deep(.group) {
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
-              box-shadow 0.2s ease,
-              border-color 0.2s ease;
+  transition: transform 200ms cubic-bezier(0.2, 0, 0.2, 1) !important,
+              box-shadow 200ms ease,
+              border-color 200ms ease,
+              background-color 200ms ease !important;
+  will-change: transform;
+}
+
+/* 拖拽时移除过渡（跟随鼠标） */
+:deep(.sortable-drag) {
+  transition: none !important;
+}
+
+/* 占位符保留过渡 */
+:deep(.sortable-ghost) {
+  transition: all 200ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 </style>

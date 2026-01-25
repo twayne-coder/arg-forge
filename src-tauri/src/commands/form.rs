@@ -484,3 +484,60 @@ pub async fn toggle_dropdown_mode(
     })
     .map_err(|e| e.to_string())
 }
+
+/// 更新表单字段
+///
+/// # 参数
+/// * `project_id` - 项目 ID
+/// * `form_id` - 表单 ID
+/// * `field_name` - 字段名称（如 "command_format"）
+/// * `value` - 新值（JSON Value）
+/// * `storage` - 存储服务实例
+///
+/// # 返回
+/// 更新后的表单对象
+///
+/// # 示例
+/// ```javascript
+/// const form = await invoke('update_form_field', {
+///   projectId: 'project-uuid',
+///   formId: 'form-uuid',
+///   fieldName: 'command_format',
+///   value: 'MultiLine'
+/// });
+/// ```
+#[tauri::command]
+pub async fn update_form_field(
+    project_id: String,
+    form_id: String,
+    field_name: String,
+    value: Value,
+    storage: State<'_, StorageService>,
+) -> Result<Form, String> {
+    with_project_mut(&storage, &project_id, |project| {
+        let form = project
+            .get_form_mut(&form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
+
+        match field_name.as_str() {
+            "command_format" => {
+                let format_str = value.as_str().ok_or_else(|| {
+                    crate::error::AppError::InvalidArgument(
+                        "command_format 必须是字符串".to_string(),
+                    )
+                })?;
+                form.command_format = format_str.parse()?;
+            }
+            _ => {
+                return Err(crate::error::AppError::InvalidArgument(format!(
+                    "不支持的字段: {}",
+                    field_name
+                )));
+            }
+        }
+
+        form.touch();
+        Ok(form.clone())
+    })
+    .map_err(|e| e.to_string())
+}

@@ -12,6 +12,11 @@ export type ItemType = "Command" | "Parameter";
 export type ParamStyle = "KeyValue" | "EqualValue" | "ValueOnly";
 
 /**
+ * 命令格式枚举
+ */
+export type CommandFormat = "SingleLine" | "MultiLine";
+
+/**
  * 表单项字段值类型
  * 用于 updateFormItem 函数的类型安全
  */
@@ -60,6 +65,8 @@ export interface Form {
   updated_at: string;
   /** 表单项列表 */
   items: FormItem[];
+  /** 命令格式 */
+  command_format: CommandFormat;
 }
 
 /**
