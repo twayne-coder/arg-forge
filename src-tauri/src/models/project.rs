@@ -70,6 +70,12 @@ pub enum CommandFormat {
     MultiLine,
 }
 
+impl Default for CommandFormat {
+    fn default() -> Self {
+        Self::SingleLine
+    }
+}
+
 impl std::str::FromStr for CommandFormat {
     type Err = AppError;
 
@@ -163,6 +169,7 @@ pub struct Form {
 
     /// 命令格式
     /// 决定生成命令时的显示格式
+    #[serde(default)]
     pub command_format: CommandFormat,
 }
 

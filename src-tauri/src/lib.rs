@@ -49,6 +49,23 @@ pub fn run() {
             app.manage(storage);
             tracing::info!("✅ 存储服务已注册到全局状态");
 
+            // 获取主窗口
+            let main_window = app.get_webview_window("main").unwrap();
+
+            // 延迟显示窗口，确保页面已加载
+            let window_clone = main_window.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                tracing::info!("✅ 页面加载完成，准备显示窗口");
+                if let Err(e) = window_clone.show() {
+                    tracing::error!("显示窗口失败: {}", e);
+                }
+                if let Err(e) = window_clone.set_focus() {
+                    tracing::error!("窗口聚焦失败: {}", e);
+                }
+                tracing::info!("✅ 窗口已显示并聚焦");
+            });
+
             tracing::info!("===== Tauri 应用初始化完成 =====");
             Ok(())
         })
