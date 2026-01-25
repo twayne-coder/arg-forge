@@ -118,6 +118,8 @@ git --version
 # 1. 安装依赖
 pnpm install
 
+pnpm start
+
 # 2. 构建前端
 pnpm build
 
