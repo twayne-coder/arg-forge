@@ -7,7 +7,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as formApi from "@/api/form";
 import { useProjectStore } from "@/stores/project";
-import type { Form, FormItemFieldValue } from "@/types/bindings";
+import type { CommandFormat, Form, FormItemFieldValue } from "@/types/bindings";
 
 export const useFormStore = defineStore("form", () => {
   // 当前选中的表单
@@ -283,6 +283,41 @@ export const useFormStore = defineStore("form", () => {
     currentForm.value = form;
   }
 
+  /**
+   * 更新命令格式
+   */
+  async function updateCommandFormat(projectId: string, format: CommandFormat) {
+    if (!currentForm.value) {
+      throw new Error("没有当前表单");
+    }
+
+    const updatedForm = await formApi.updateCommandFormat(
+      projectId,
+      currentForm.value.id,
+      format
+    );
+
+    // 更新本地状态
+    currentForm.value = updatedForm;
+
+    // 同步更新 projectStore
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      const formIndex = projectStore.currentProject.forms.findIndex(
+        f => f.id === updatedForm.id
+      );
+      if (formIndex !== -1) {
+        projectStore.currentProject.forms = [
+          ...projectStore.currentProject.forms.slice(0, formIndex),
+          updatedForm,
+          ...projectStore.currentProject.forms.slice(formIndex + 1)
+        ];
+      }
+    }
+
+    return updatedForm;
+  }
+
   return {
     currentForm,
     createForm,
@@ -294,6 +329,7 @@ export const useFormStore = defineStore("form", () => {
     reorderFormItems,
     updateDropdownOptions,
     toggleDropdownMode,
+    updateCommandFormat,
     setCurrentForm,
   };
 });

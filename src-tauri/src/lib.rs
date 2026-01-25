@@ -61,11 +61,12 @@ pub fn run() {
             commands::update_project,
             commands::delete_project,
             commands::duplicate_project,
-            // 表单管理命令 (8 个)
+            // 表单管理命令 (9 个)
             commands::create_form,
             commands::update_form,
             commands::delete_form,
             commands::update_form_item,
+            commands::update_form_field,
             commands::add_form_item,
             commands::delete_form_item,
             commands::reorder_form_items,

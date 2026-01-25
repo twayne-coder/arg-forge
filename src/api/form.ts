@@ -4,7 +4,7 @@
  */
 
 import { invoke } from "@/lib/tauri";
-import type { Form, FormItem, ItemType } from "@/types/bindings";
+import type { CommandFormat, Form, FormItem, ItemType } from "@/types/bindings";
 
 /**
  * 创建表单
@@ -174,5 +174,25 @@ export async function toggleDropdownMode(
     formId,
     itemId,
     useDropdown,
+  });
+}
+
+/**
+ * 更新命令格式
+ * @param projectId - 项目 ID
+ * @param formId - 表单 ID
+ * @param format - 命令格式（"SingleLine" 或 "MultiLine"）
+ * @returns 更新后的表单对象
+ */
+export async function updateCommandFormat(
+  projectId: string,
+  formId: string,
+  format: CommandFormat
+): Promise<Form> {
+  return await invoke("update_form_field", {
+    projectId,
+    formId,
+    fieldName: "command_format",
+    value: format,
   });
 }

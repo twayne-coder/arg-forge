@@ -25,24 +25,38 @@
         <div class="px-6 py-4">
           <div class="flex items-center justify-between">
             <CardTitle class="text-sm font-medium">{{ $t('command.title') }}</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              @click="copyCommand"
-              :disabled="!commandPreview"
-              class="h-7 px-2"
-            >
-              <CopyIcon class="h-3.5 w-3.5 mr-1" />
-              {{ $t('command.copy') }}
-            </Button>
+
+            <div class="flex items-center gap-2">
+              <!-- 格式切换按钮 -->
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="toggleFormat"
+                class="h-7 px-2"
+              >
+                <ListIcon class="h-3.5 w-3.5 mr-1" />
+                {{ currentFormatLabel }}
+              </Button>
+
+              <!-- 复制按钮 -->
+              <Button
+                variant="ghost"
+                size="sm"
+                @click="copyCommand"
+                :disabled="!commandPreview"
+                class="h-7 px-2"
+              >
+                <CopyIcon class="h-3.5 w-3.5 mr-1" />
+                {{ $t('command.copy') }}
+              </Button>
+            </div>
           </div>
           <div class="mt-3">
             <code
               v-if="commandPreview"
-              class="block bg-muted p-3 text-sm font-mono break-all rounded-md"
-            >
-              {{ commandPreview }}
-            </code>
+              class="block bg-muted p-3 text-sm font-mono break-all rounded-md whitespace-pre-wrap"
+              v-text="commandPreview"
+            />
             <div
               v-else
               class="text-sm text-muted-foreground text-center py-2"
@@ -141,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import Sortable from "sortablejs";
 import { CardTitle, CardDescription } from "@/components/ui/card";
@@ -153,18 +167,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon } from "lucide-vue-next";
+import { EditIcon, CopyIcon, PlusIcon, TerminalIcon, SlidersIcon, ChevronDownIcon, ListIcon } from "lucide-vue-next";
 import { useCommandPreview } from "@/composables/useCommandPreview";
 import { useFormItems } from "@/composables/useFormItems";
 import { useUiStore } from "@/stores/ui";
+import { useProjectStore } from "@/stores/project";
+import { useFormStore } from "@/stores/form";
 import FormItemEditor from "./FormItemEditor.vue";
 import DropdownOptionsDialog from "./DropdownOptionsDialog.vue";
-import type { Form, FormItem } from "@/types/bindings";
+import type { CommandFormat, Form, FormItem } from "@/types/bindings";
 
 const { t } = useI18n();
 
 /** 组件属性 */
-defineProps<{
+const props = defineProps<{
   form: Form;
 }>();
 
@@ -181,6 +197,36 @@ const { commandPreview } = useCommandPreview();
 
 /** UI 状态管理 */
 const uiStore = useUiStore();
+
+/** 项目和表单状态管理 */
+const projectStore = useProjectStore();
+const formStore = useFormStore();
+
+/** 当前格式标签 */
+const currentFormatLabel = computed(() => {
+  if (!props.form) return "";
+  return props.form.command_format === "SingleLine" ? "单行" : "多行";
+});
+
+/**
+ * 切换命令格式
+ */
+async function toggleFormat() {
+  if (!props.form || !projectStore.currentProject) return;
+
+  const newFormat: CommandFormat =
+    props.form.command_format === "SingleLine" ? "MultiLine" : "SingleLine";
+
+  try {
+    await formStore.updateCommandFormat(
+      projectStore.currentProject.id,
+      newFormat
+    );
+  } catch (error) {
+    console.error("切换格式失败:", error);
+    uiStore.showToast("切换格式失败", "error");
+  }
+}
 
 /** 列表 DOM 引用 */
 const listRef = ref<HTMLElement | null>(null);
