@@ -1,15 +1,28 @@
 <template>
   <div
     :class="[
-      'group flex items-center gap-3 rounded-lg border p-3 transition-all',
-      'hover:border-primary hover:shadow-sm',
-      !item.enabled ? 'opacity-60 grayscale bg-muted text-muted-foreground' : 'bg-card',
-      item.item_type === 'Command' && item.enabled && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
+      'group flex items-center gap-2 rounded-lg border p-2 transition-all',
+      !item.enabled
+        ? [
+          'opacity-50 grayscale bg-slate-50 dark:bg-slate-900/30',
+          'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+        ]
+        : item.item_type === 'Command'
+          ? [
+            'bg-emerald-100 dark:bg-emerald-950',
+            'border-emerald-200 dark:border-emerald-700',
+            'hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-sm'
+          ]
+          : [
+            'bg-teal-50 dark:bg-teal-950/20',
+            'border-teal-100 dark:border-teal-900',
+            'hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-sm'
+          ]
     ]"
   >
     <!-- 拖拽手柄 -->
     <div class="drag-handle shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground relative">
-      <GripVerticalIcon class="h-5 w-5 pointer-events-none" />
+      <GripVerticalIcon class="h-4 w-4 pointer-events-none" />
     </div>
 
     <!-- 启用开关 -->
@@ -21,23 +34,24 @@
 
     <!-- 类型选择器 -->
     <Select
+      :key="`type-${locale}`"
       :model-value="item.item_type"
       @update:model-value="handleUpdate('item_type', $event)"
     >
-      <SelectTrigger class="w-[75px]">
+      <SelectTrigger class="w-[75px] h-8 text-xs sm:w-[80px] md:w-[85px] lg:w-[90px]">
         <SelectValue :placeholder="$t('formItem.type')" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="Command">
           <div class="flex items-center gap-2">
             <TerminalIcon class="h-3.5 w-3.5 text-emerald-600" />
-            <span>{{ $t('formItem.command') }}</span>
+            <span>{{ $t('formItem.cmd') }}</span>
           </div>
         </SelectItem>
         <SelectItem value="Parameter">
           <div class="flex items-center gap-2">
             <SlidersIcon class="h-3.5 w-3.5" />
-            <span>{{ $t('formItem.parameter') }}</span>
+            <span>{{ $t('formItem.param') }}</span>
           </div>
         </SelectItem>
       </SelectContent>
@@ -50,7 +64,7 @@
           :model-value="item.content"
           @update:model-value="handleUpdate('content', $event)"
           :placeholder="$t('formItem.contentPlaceholder')"
-          class="font-mono text-sm"
+          class="font-mono text-xs h-8"
         />
       </div>
     </template>
@@ -66,16 +80,17 @@
           :model-value="item.param_name"
           @update:model-value="handleUpdate('param_name', $event)"
           :placeholder="$t('formItem.paramNamePlaceholder')"
-          class="font-mono text-sm"
+          class="font-mono text-xs h-8"
         />
       </div>
 
       <!-- 参数风格 -->
       <Select
+        :key="`style-${locale}`"
         :model-value="item.param_style"
         @update:model-value="handleUpdate('param_style', $event)"
       >
-        <SelectTrigger class="w-[115px]">
+        <SelectTrigger class="w-[110px] h-8 text-xs sm:w-[120px] md:w-[130px] lg:w-[140px]">
           <SelectValue :placeholder="$t('formItem.paramStyle')" />
         </SelectTrigger>
         <SelectContent>
@@ -95,10 +110,11 @@
       <div class="flex-1 min-w-0">
         <template v-if="item.use_dropdown && item.dropdown_options.length > 0">
           <Select
+            :key="`value-${locale}`"
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
           >
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full h-8 text-xs">
               <SelectValue :placeholder="$t('formItem.selectValue')" />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +133,7 @@
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
             :placeholder="$t('formItem.paramValuePlaceholder')"
-            class="text-sm"
+            class="text-xs h-8"
           />
         </template>
       </div>
@@ -129,10 +145,10 @@
       variant="ghost"
       size="sm"
       @click="$emit('open-dropdown-options', item)"
-      class="shrink-0"
+      class="shrink-0 h-8 w-8 p-0"
       :title="$t('formItem.manageDropdown')"
     >
-      <SettingsIcon class="h-4 w-4" />
+      <SettingsIcon class="h-3.5 w-3.5" />
     </Button>
 
     <!-- 下拉模式切换按钮（仅参数项显示） -->
@@ -142,12 +158,12 @@
       size="sm"
       @click="toggleDropdown"
       :class="[
-        'shrink-0',
+        'shrink-0 h-8 w-8 p-0',
         item.use_dropdown && 'bg-primary/10 text-primary hover:bg-primary/20'
       ]"
       :title="$t('formItem.toggleDropdown')"
     >
-      <ListIcon class="h-4 w-4" />
+      <ListIcon class="h-3.5 w-3.5" />
     </Button>
 
     <!-- 删除按钮 -->
@@ -155,10 +171,10 @@
       variant="ghost"
       size="sm"
       @click="$emit('delete', item.id)"
-      class="shrink-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
+      class="shrink-0 h-8 w-8 p-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
       :title="$t('formItem.delete')"
     >
-      <TrashIcon class="h-4 w-4" />
+      <TrashIcon class="h-3.5 w-3.5" />
     </Button>
   </div>
 </template>
@@ -184,6 +200,7 @@ import {
 } from "lucide-vue-next";
 import { useFormItems } from "@/composables/useFormItems";
 import type { FormItem, FormItemFieldValue } from "@/types/bindings";
+import { useI18n } from "vue-i18n";
 
 /** 组件属性 */
 const props = defineProps<{
@@ -198,6 +215,9 @@ defineEmits<{
 
 /** 表单项操作 */
 const { updateFormItem, toggleDropdownMode } = useFormItems();
+
+/** 获取当前语言（用于强制刷新 Select 组件） */
+const { locale } = useI18n();
 
 /**
  * 更新表单项字段

@@ -8,7 +8,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Segoe UI Variable"', '"Segoe UI"', 'sans-serif'],
+        sans: ['"JetBrains Mono"', '"Segoe UI Variable"', '"Segoe UI"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
         'xl': '8px',

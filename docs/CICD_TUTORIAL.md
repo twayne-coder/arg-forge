@@ -117,8 +117,9 @@ git --version
 ```bash
 # 1. 安装依赖
 pnpm install
-
+# 开发启动
 pnpm start
+# 建议: 开发时定期执行 cargo clean --debug 清理 debug 产物，保留 release 版本用于测试。
 
 # 2. 构建前端
 pnpm build
