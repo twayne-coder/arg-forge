@@ -54,7 +54,7 @@
           <div class="mt-2">
             <code
               v-if="commandPreview"
-              class="block bg-muted p-2 text-xs font-mono break-all rounded-md whitespace-pre-wrap"
+              class="block bg-muted px-2 py-2.5 text-xs font-mono break-all rounded-md whitespace-pre-wrap"
               v-text="commandPreview"
             />
             <div
@@ -205,7 +205,9 @@ const formStore = useFormStore();
 /** 当前格式标签 */
 const currentFormatLabel = computed(() => {
   if (!props.form) return "";
-  return props.form.command_format === "SingleLine" ? "单行" : "多行";
+  return props.form.command_format === "SingleLine"
+    ? t('command.singleLine')
+    : t('command.multiLine');
 });
 
 /**
