@@ -21,23 +21,24 @@
 
     <!-- 类型选择器 -->
     <Select
+      :key="`type-${locale}`"
       :model-value="item.item_type"
       @update:model-value="handleUpdate('item_type', $event)"
     >
-      <SelectTrigger class="w-[70px] h-8 text-xs">
+      <SelectTrigger class="w-[75px] h-8 text-xs sm:w-[80px] md:w-[85px] lg:w-[90px]">
         <SelectValue :placeholder="$t('formItem.type')" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="Command">
           <div class="flex items-center gap-2">
             <TerminalIcon class="h-3.5 w-3.5 text-emerald-600" />
-            <span>{{ $t('formItem.command') }}</span>
+            <span>{{ $t('formItem.cmd') }}</span>
           </div>
         </SelectItem>
         <SelectItem value="Parameter">
           <div class="flex items-center gap-2">
             <SlidersIcon class="h-3.5 w-3.5" />
-            <span>{{ $t('formItem.parameter') }}</span>
+            <span>{{ $t('formItem.param') }}</span>
           </div>
         </SelectItem>
       </SelectContent>
@@ -72,10 +73,11 @@
 
       <!-- 参数风格 -->
       <Select
+        :key="`style-${locale}`"
         :model-value="item.param_style"
         @update:model-value="handleUpdate('param_style', $event)"
       >
-        <SelectTrigger class="w-[105px] h-8 text-xs">
+        <SelectTrigger class="w-[110px] h-8 text-xs sm:w-[120px] md:w-[130px] lg:w-[140px]">
           <SelectValue :placeholder="$t('formItem.paramStyle')" />
         </SelectTrigger>
         <SelectContent>
@@ -95,6 +97,7 @@
       <div class="flex-1 min-w-0">
         <template v-if="item.use_dropdown && item.dropdown_options.length > 0">
           <Select
+            :key="`value-${locale}`"
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
           >
@@ -184,6 +187,7 @@ import {
 } from "lucide-vue-next";
 import { useFormItems } from "@/composables/useFormItems";
 import type { FormItem, FormItemFieldValue } from "@/types/bindings";
+import { useI18n } from "vue-i18n";
 
 /** 组件属性 */
 const props = defineProps<{
@@ -198,6 +202,9 @@ defineEmits<{
 
 /** 表单项操作 */
 const { updateFormItem, toggleDropdownMode } = useFormItems();
+
+/** 获取当前语言（用于强制刷新 Select 组件） */
+const { locale } = useI18n();
 
 /**
  * 更新表单项字段

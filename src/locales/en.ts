@@ -80,8 +80,8 @@ export default {
 		addParameter: "Add Parameter",
 		noItems: "No form items",
 		type: "Type",
-		command: "Command",
-		parameter: "Parameter",
+		command: "Cmd",
+		parameter: "Param",
 		paramStyle: "Style",
 		paramName: "Param Name",
 		paramNamePlaceholder: "Parameter name",
@@ -95,6 +95,8 @@ export default {
 		optionalValues: "Options: {values}",
 		emptyCommand: "(empty)",
 		unnamed: "(unnamed)",
+		cmd: "Cmd",
+		param: "Param",
 	},
 
 	// 下拉选项

@@ -95,6 +95,8 @@ export default {
 		optionalValues: "可选值: {values}",
 		emptyCommand: "(空命令)",
 		unnamed: "(未命名)",
+		cmd: "命令",
+		param: "参数",
 	},
 
 	// 下拉选项
