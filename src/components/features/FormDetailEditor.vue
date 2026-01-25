@@ -204,16 +204,30 @@ onMounted(() => {
 
   sortableInstance = Sortable.create(listRef.value, {
     handle: ".drag-handle",
-    animation: 350,
-    easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+
+    // 动画配置
+    animation: 200,
+    easing: "cubic-bezier(0.2, 0, 0.2, 1)",
+
+    // 交换配置
+    swapThreshold: 0.5,
+    invertSwap: false,
+
+    // 样式类名
     ghostClass: "sortable-ghost",
     dragClass: "sortable-drag",
+    fallbackClass: "sortable-fallback",
+
+    // 滚动配置
     scroll: true,
     bubbleScroll: true,
+
+    // Fallback 配置
     forceFallback: true,
-    fallbackClass: 'sortable-fallback',
     fallbackOnBody: true,
-    swapThreshold: 0.65,
+    fallbackTolerance: 5,
+    removeCloneOnHide: false,
+
     onEnd: async (evt) => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
@@ -277,33 +291,49 @@ async function copyCommand() {
 <style scoped>
 /* 拖拽时的占位符样式（原位置） */
 .sortable-ghost {
-  opacity: 0.4;
-  background-color: hsl(var(--accent));
-  border: 2px dashed hsl(var(--primary) / 0.5);
-  transform: scale(0.98);
+  opacity: 0.3;
+  background-color: hsl(var(--accent) / 0.5);
+  border: 2px dashed hsl(var(--primary) / 0.6);
+  transform: scale(0.95);
+  transition: all 200ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 
 /* 正在被拖拽的元素样式 */
 .sortable-drag {
   opacity: 1;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.3);
-  transform: scale(1.02);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
   cursor: grabbing;
+  z-index: 1000;
+  transition: none !important;
 }
 
-/* Fallback 拖拽样式 */
+/* Fallback 拖拽样式（跨浏览器兼容） */
 .sortable-fallback {
-  opacity: 0.9;
+  opacity: 0.95;
   background-color: hsl(var(--card));
-  box-shadow: 0 15px 50px -12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5);
   border-radius: 0.5rem;
   cursor: grabbing;
+  transform: scale(1.05);
 }
 
 /* 所有可拖拽项添加过渡效果 */
 :deep(.group) {
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
-              box-shadow 0.2s ease,
-              border-color 0.2s ease;
+  transition: transform 200ms cubic-bezier(0.2, 0, 0.2, 1) !important,
+              box-shadow 200ms ease,
+              border-color 200ms ease,
+              background-color 200ms ease !important;
+  will-change: transform;
+}
+
+/* 拖拽时移除过渡（跟随鼠标） */
+:deep(.sortable-drag) {
+  transition: none !important;
+}
+
+/* 占位符保留过渡 */
+:deep(.sortable-ghost) {
+  transition: all 200ms cubic-bezier(0.2, 0, 0.2, 1) !important;
 }
 </style>
