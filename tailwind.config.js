@@ -9,6 +9,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Segoe UI Variable"', '"Segoe UI"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
         'xl': '8px',
