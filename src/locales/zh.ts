@@ -122,6 +122,8 @@ export default {
 		copySuccess: "命令已复制",
 		copyFailed: "复制失败",
 		emptyHint: "添加参数后自动生成命令",
+		singleLine: "单行",
+		multiLine: "多行",
 	},
 
 	// 窗口控制

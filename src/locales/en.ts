@@ -122,6 +122,8 @@ export default {
 		copySuccess: "Command copied",
 		copyFailed: "Copy failed",
 		emptyHint: "Command will be generated after adding parameters",
+		singleLine: "Single",
+		multiLine: "Multi",
 	},
 
 	// 窗口控制
