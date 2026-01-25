@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'group flex items-center gap-3 rounded-lg border p-3 transition-all',
+      'group flex items-center gap-2 rounded-lg border p-2 transition-all',
       'hover:border-primary hover:shadow-sm',
       !item.enabled ? 'opacity-60 grayscale bg-muted text-muted-foreground' : 'bg-card',
       item.item_type === 'Command' && item.enabled && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
@@ -9,7 +9,7 @@
   >
     <!-- 拖拽手柄 -->
     <div class="drag-handle shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground relative">
-      <GripVerticalIcon class="h-5 w-5 pointer-events-none" />
+      <GripVerticalIcon class="h-4 w-4 pointer-events-none" />
     </div>
 
     <!-- 启用开关 -->
@@ -24,7 +24,7 @@
       :model-value="item.item_type"
       @update:model-value="handleUpdate('item_type', $event)"
     >
-      <SelectTrigger class="w-[75px]">
+      <SelectTrigger class="w-[70px] h-8 text-xs">
         <SelectValue :placeholder="$t('formItem.type')" />
       </SelectTrigger>
       <SelectContent>
@@ -50,7 +50,7 @@
           :model-value="item.content"
           @update:model-value="handleUpdate('content', $event)"
           :placeholder="$t('formItem.contentPlaceholder')"
-          class="font-mono text-sm"
+          class="font-mono text-xs h-8"
         />
       </div>
     </template>
@@ -66,7 +66,7 @@
           :model-value="item.param_name"
           @update:model-value="handleUpdate('param_name', $event)"
           :placeholder="$t('formItem.paramNamePlaceholder')"
-          class="font-mono text-sm"
+          class="font-mono text-xs h-8"
         />
       </div>
 
@@ -75,7 +75,7 @@
         :model-value="item.param_style"
         @update:model-value="handleUpdate('param_style', $event)"
       >
-        <SelectTrigger class="w-[115px]">
+        <SelectTrigger class="w-[105px] h-8 text-xs">
           <SelectValue :placeholder="$t('formItem.paramStyle')" />
         </SelectTrigger>
         <SelectContent>
@@ -98,7 +98,7 @@
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
           >
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full h-8 text-xs">
               <SelectValue :placeholder="$t('formItem.selectValue')" />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +117,7 @@
             :model-value="item.content"
             @update:model-value="handleUpdate('content', $event)"
             :placeholder="$t('formItem.paramValuePlaceholder')"
-            class="text-sm"
+            class="text-xs h-8"
           />
         </template>
       </div>
@@ -129,10 +129,10 @@
       variant="ghost"
       size="sm"
       @click="$emit('open-dropdown-options', item)"
-      class="shrink-0"
+      class="shrink-0 h-8 w-8 p-0"
       :title="$t('formItem.manageDropdown')"
     >
-      <SettingsIcon class="h-4 w-4" />
+      <SettingsIcon class="h-3.5 w-3.5" />
     </Button>
 
     <!-- 下拉模式切换按钮（仅参数项显示） -->
@@ -142,12 +142,12 @@
       size="sm"
       @click="toggleDropdown"
       :class="[
-        'shrink-0',
+        'shrink-0 h-8 w-8 p-0',
         item.use_dropdown && 'bg-primary/10 text-primary hover:bg-primary/20'
       ]"
       :title="$t('formItem.toggleDropdown')"
     >
-      <ListIcon class="h-4 w-4" />
+      <ListIcon class="h-3.5 w-3.5" />
     </Button>
 
     <!-- 删除按钮 -->
@@ -155,10 +155,10 @@
       variant="ghost"
       size="sm"
       @click="$emit('delete', item.id)"
-      class="shrink-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
+      class="shrink-0 h-8 w-8 p-0 text-destructive dark:text-red-500 hover:text-destructive dark:hover:text-red-400 hover:bg-destructive/10 dark:hover:bg-red-500/10"
       :title="$t('formItem.delete')"
     >
-      <TrashIcon class="h-4 w-4" />
+      <TrashIcon class="h-3.5 w-3.5" />
     </Button>
   </div>
 </template>

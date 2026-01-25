@@ -6,7 +6,7 @@
       <div class="p-6">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <CardTitle class="text-xl">{{ form.name }}</CardTitle>
+            <CardTitle class="text-lg">{{ form.name }}</CardTitle>
             <CardDescription v-if="form.description" class="mt-1">
               {{ form.description }}
             </CardDescription>
