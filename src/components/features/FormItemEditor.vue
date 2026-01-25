@@ -9,7 +9,7 @@
         ]
         : item.item_type === 'Command'
           ? [
-            'bg-emerald-100 dark:bg-emerald-800',
+            'bg-emerald-100 dark:bg-emerald-950',
             'border-emerald-200 dark:border-emerald-700',
             'hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-sm'
           ]
