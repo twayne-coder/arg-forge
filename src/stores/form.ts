@@ -201,18 +201,29 @@ export const useFormStore = defineStore("form", () => {
       throw new Error("没有当前表单");
     }
 
-    // 乐观更新
-    const items = [...currentForm.value.items];
-    const [movedItem] = items.splice(oldIndex, 1);
-    items.splice(newIndex, 0, movedItem);
-    currentForm.value.items = items;
+    const formId = currentForm.value.id;
 
+    // 调用后端 API 保存到文件系统
     await formApi.reorderFormItems(
       projectId,
-      currentForm.value.id,
+      formId,
       oldIndex,
       newIndex
     );
+
+    // 重新加载项目数据，确保 formStore 和 projectStore 同步
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      await projectStore.setCurrentProject(projectId);
+
+      // 恢复当前表单引用
+      const updatedForm = projectStore.currentProject?.forms.find(
+        f => f.id === formId
+      );
+      if (updatedForm) {
+        currentForm.value = updatedForm;
+      }
+    }
   }
 
   /**
