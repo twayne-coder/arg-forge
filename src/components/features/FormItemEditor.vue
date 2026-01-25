@@ -2,9 +2,22 @@
   <div
     :class="[
       'group flex items-center gap-2 rounded-lg border p-2 transition-all',
-      'hover:border-primary hover:shadow-sm',
-      !item.enabled ? 'opacity-60 grayscale bg-muted text-muted-foreground' : 'bg-card',
-      item.item_type === 'Command' && item.enabled && 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900 hover:!border-primary dark:hover:!border-primary'
+      !item.enabled
+        ? [
+          'opacity-50 grayscale bg-slate-50 dark:bg-slate-900/30',
+          'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+        ]
+        : item.item_type === 'Command'
+          ? [
+            'bg-emerald-100 dark:bg-emerald-800',
+            'border-emerald-200 dark:border-emerald-700',
+            'hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-sm'
+          ]
+          : [
+            'bg-teal-50 dark:bg-teal-950/20',
+            'border-teal-100 dark:border-teal-900',
+            'hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-sm'
+          ]
     ]"
   >
     <!-- 拖拽手柄 -->
