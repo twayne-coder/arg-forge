@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch } from "vue";
 import { useUiStore } from "@/stores/ui";
 import { Check, X, AlertCircle, Info } from "lucide-vue-next";
 import type { Toast } from "@/types/toast";
@@ -8,19 +8,6 @@ const store = useUiStore();
 
 // 正在移除的 toast ID 集合（用于淡出动画）
 const removingIds = ref<Set<string>>(new Set());
-
-// 调试：监控 toasts 变化
-watch(
-  () => store.toasts,
-  (newToasts) => {
-    console.log("[ToastContainer] toasts 变化:", newToasts.length, newToasts);
-  },
-  { deep: true, immediate: true }
-);
-
-onMounted(() => {
-  console.log("[ToastContainer] 组件已挂载");
-});
 
 /**
  * 获取图标组件
@@ -97,17 +84,15 @@ watch(
 .toast-item {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.75rem 1.25rem;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
   background: hsl(var(--background));
-  border-radius: calc(var(--radius) + 2px);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.15);
-  border-right: 1px solid hsl(var(--border));
-  border-top: 1px solid hsl(var(--border));
-  border-bottom: 1px solid hsl(var(--border));
-  backdrop-filter: blur(8px);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  border: 2px solid;
+  backdrop-filter: blur(12px);
   user-select: none;
-  pointer-events: auto; /* 恢复 toast 自身的交互 */
+  pointer-events: auto;
   min-width: 200px;
   max-width: 380px;
   transition: opacity 0.3s ease-in, transform 0.3s ease-in;
@@ -120,46 +105,78 @@ watch(
 
 /* 类型样式：Success */
 .toast-success {
-  border-left: 4px solid hsl(var(--primary));
-  background-image: linear-gradient(90deg, hsl(var(--primary) / 0.12) 0%, hsl(var(--background)) 35%);
+  border-color: hsl(var(--primary));
+  background: hsl(var(--background));
+}
+
+/* 深色模式：Success */
+.dark .toast-success {
+  border-color: hsl(var(--primary) / 0.5);
 }
 
 .toast-success .icon-success {
-  color: hsl(var(--primary));
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1));
+  color: white;
+  background: hsl(var(--primary));
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px hsl(var(--primary) / 0.3);
 }
 
 /* 类型样式：Error */
 .toast-error {
-  border-left: 4px solid hsl(var(--destructive));
-  background-image: linear-gradient(90deg, hsl(var(--destructive) / 0.12) 0%, hsl(var(--background)) 35%);
+  border-color: hsl(var(--destructive));
+  background: hsl(var(--background));
+}
+
+/* 深色模式：Error */
+.dark .toast-error {
+  border-color: hsl(var(--destructive) / 0.5);
 }
 
 .toast-error .icon-error {
-  color: hsl(var(--destructive));
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1));
+  color: white;
+  background: hsl(var(--destructive));
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px hsl(var(--destructive) / 0.3);
 }
 
 /* 类型样式：Info */
 .toast-info {
-  border-left: 4px solid hsl(var(--ring));
-  background-image: linear-gradient(90deg, hsl(var(--ring) / 0.12) 0%, hsl(var(--background)) 35%);
+  border-color: hsl(var(--ring));
+  background: hsl(var(--background));
+}
+
+/* 深色模式：Info */
+.dark .toast-info {
+  border-color: hsl(var(--ring) / 0.5);
 }
 
 .toast-info .icon-info {
-  color: hsl(var(--ring));
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1));
+  color: white;
+  background: hsl(var(--ring));
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px hsl(var(--ring) / 0.3);
 }
 
 /* 类型样式：Warning */
 .toast-warning {
-  border-left: 4px solid hsl(45 93% 47%);
-  background-image: linear-gradient(90deg, hsl(45 93% 47% / 0.12) 0%, hsl(var(--background)) 35%);
+  border-color: hsl(var(--warning));
+  background: hsl(var(--background));
+}
+
+/* 深色模式：Warning */
+.dark .toast-warning {
+  border-color: hsl(var(--warning) / 0.5);
 }
 
 .toast-warning .icon-warning {
-  color: hsl(45 93% 47%);
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1));
+  color: white;
+  background: hsl(var(--warning));
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px hsl(var(--warning) / 0.3);
 }
 
 /* 图标样式 */
@@ -167,6 +184,9 @@ watch(
   flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 消息文本 */
