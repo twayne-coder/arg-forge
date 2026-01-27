@@ -33,34 +33,75 @@
           />
         </div>
 
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            @click="emit('update:open', false)"
-            :disabled="loading"
-          >
-            {{ $t('common.cancel') }}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            @click="handleDuplicate"
-            :disabled="loading"
-          >
-            {{ $t('common.duplicate') }}
-          </Button>
-          <Button type="submit" :disabled="loading || !isFormValid">
-            {{ loading ? $t('project.saving') : $t('common.save') }}
-          </Button>
-        </DialogFooter>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
+          <div class="flex gap-2">
+            <Button
+              type="button"
+              variant="destructive"
+              @click="handleDelete"
+              :disabled="loading || deleting"
+            >
+              {{ $t('common.delete') }}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              @click="handleDuplicate"
+              :disabled="loading || deleting"
+            >
+              {{ $t('common.duplicate') }}
+            </Button>
+          </div>
+          <div class="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              @click="emit('update:open', false)"
+              :disabled="loading || deleting"
+            >
+              {{ $t('common.cancel') }}
+            </Button>
+            <Button type="submit" :disabled="loading || deleting || !isFormValid">
+              {{ loading ? $t('project.saving') : $t('common.save') }}
+            </Button>
+          </div>
+        </div>
       </form>
+    </DialogContent>
+  </Dialog>
+
+  <!-- 删除确认对话框 -->
+  <Dialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{{ $t('form.deleteConfirm') }}</DialogTitle>
+        <DialogDescription>
+          {{ $t('form.deleteConfirmMessage', { name: props.form.name || '' }) }}
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button
+          variant="outline"
+          @click="showDeleteConfirm = false"
+          :disabled="deleting"
+        >
+          {{ $t('common.cancel') }}
+        </Button>
+        <Button
+          variant="destructive"
+          @click="confirmDelete"
+          :disabled="deleting"
+        >
+          {{ deleting ? $t('form.deleting') : $t('form.deleteConfirmButton') }}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   Dialog,
   DialogContent,
@@ -75,6 +116,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useProjectStore } from "@/stores/project";
 import { useFormStore } from "@/stores/form";
+import { useUiStore } from "@/stores/ui";
 import type { Form } from "@/types/bindings";
 
 /** 是否打开对话框 */
@@ -89,11 +131,17 @@ const emit = defineEmits<{
   (e: "success"): void;
 }>();
 
+/** 国际化 */
+const { t } = useI18n();
+
 /** 项目 store */
 const projectStore = useProjectStore();
 
 /** 表单 store */
 const formStore = useFormStore();
+
+/** UI store */
+const uiStore = useUiStore();
 
 /** 表单数据 */
 const formData = ref({
@@ -103,6 +151,12 @@ const formData = ref({
 
 /** 加载状态 */
 const loading = ref(false);
+
+/** 是否显示删除确认对话框 */
+const showDeleteConfirm = ref(false);
+
+/** 删除中状态 */
+const deleting = ref(false);
 
 /** 表单是否有效 */
 const isFormValid = computed(() => {
@@ -161,6 +215,34 @@ async function handleDuplicate() {
     // TODO: 显示错误提示
   } finally {
     loading.value = false;
+  }
+}
+
+/** 处理删除按钮点击 */
+function handleDelete() {
+  showDeleteConfirm.value = true;
+}
+
+/** 确认删除 */
+async function confirmDelete() {
+  if (!projectStore.currentProject) return;
+
+  deleting.value = true;
+  try {
+    await formStore.deleteForm(
+      projectStore.currentProject.id,
+      props.form.id
+    );
+
+    uiStore.showToast(t('form.deleteSuccess'), "success");
+    showDeleteConfirm.value = false;
+    emit("update:open", false);
+    emit("success");
+  } catch (error) {
+    console.error("删除表单失败:", error);
+    uiStore.showToast(t('form.deleteFailed'), "error");
+  } finally {
+    deleting.value = false;
   }
 }
 </script>

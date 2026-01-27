@@ -36,6 +36,7 @@ export default {
 		editDescription: "修改项目信息或管理项目",
 		duplicateSuccess: "项目已复制",
 		duplicateFailed: "复制项目失败",
+		deleteSuccess: "项目已删除",
 		deleteFailed: "删除项目失败",
 		deleteConfirm: "确认删除",
 		deleteConfirmMessage: '确定要删除项目 "{name}" 吗？此操作无法撤销。',
@@ -69,6 +70,15 @@ export default {
 		selectHint: "选择一个表单查看详情",
 		itemCount: "{count} 项",
 		updatedAt: "更新于",
+		duplicateSuccess: "表单已复制",
+		duplicateFailed: "复制表单失败",
+		noCurrentForm: "没有当前表单",
+		deleteSuccess: "表单已删除",
+		deleteFailed: "删除表单失败",
+		deleteConfirm: "确认删除",
+		deleteConfirmMessage: '确定要删除表单 "{name}" 吗？此操作无法撤销。',
+		deleteConfirmButton: "确认删除",
+		deleting: "删除中...",
 	},
 
 	// 表单项
