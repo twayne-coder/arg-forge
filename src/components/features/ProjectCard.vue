@@ -6,7 +6,12 @@
     <CardHeader>
       <CardTitle class="flex items-center justify-between text-lg">
         <span class="truncate">{{ project.name }}</span>
-        <ProjectCardDropdown :project="project" @click.stop />
+        <ProjectCardDropdown
+          :project="project"
+          @edit="handleEdit"
+          @duplicate="handleDuplicate"
+          @delete="handleDelete"
+        />
       </CardTitle>
       <CardDescription class="line-clamp-3">
         {{ project.description || $t('project.noDescription') }}
@@ -35,11 +40,29 @@ const props = defineProps<{
 /** 点击事件 */
 const emit = defineEmits<{
   (e: "click", project: Project): void;
+  (e: "edit", project: Project): void;
+  (e: "duplicate", project: Project): void;
+  (e: "delete", project: Project): void;
 }>();
 
 /** 处理卡片点击 */
 function handleClick() {
   emit("click", props.project);
+}
+
+/** 处理编辑 */
+function handleEdit() {
+  emit("edit", props.project);
+}
+
+/** 处理复制 */
+function handleDuplicate() {
+  emit("duplicate", props.project);
+}
+
+/** 处理删除 */
+function handleDelete() {
+  emit("delete", props.project);
 }
 </script>
 
