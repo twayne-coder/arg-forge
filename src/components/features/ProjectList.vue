@@ -69,6 +69,26 @@
       :project="editingProject"
       @success="handleRefresh"
     />
+
+    <!-- 删除确认对话框 -->
+    <Dialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{{ $t('project.deleteConfirm') }}</DialogTitle>
+          <DialogDescription>
+            {{ $t('project.deleteConfirmMessage', { name: projectToDelete?.name || '' }) }}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" @click="showDeleteConfirm = false" :disabled="deleting">
+            {{ $t('common.cancel') }}
+          </Button>
+          <Button variant="destructive" @click="confirmDelete" :disabled="deleting">
+            {{ deleting ? t('project.deleting') : t('project.deleteConfirmButton') }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -78,6 +98,14 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PlusIcon, FolderOpenIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import { useUiStore } from "@/stores/ui";
@@ -109,6 +137,15 @@ const editingProject = ref<Project | null>(null);
 
 /** 是否加载中 */
 const isLoading = ref(false);
+
+/** 是否显示删除确认对话框 */
+const showDeleteConfirm = ref(false);
+
+/** 待删除的项目 */
+const projectToDelete = ref<Project | null>(null);
+
+/** 删除中状态 */
+const deleting = ref(false);
 
 /** 项目列表 */
 const projects = computed(() => projectStore.sortedProjects);
@@ -184,13 +221,27 @@ async function handleDuplicateProject(project: Project) {
 }
 
 /** 处理删除项目 */
-async function handleDeleteProject(project: Project) {
+function handleDeleteProject(project: Project) {
+  projectToDelete.value = project;
+  showDeleteConfirm.value = true;
+}
+
+/** 确认删除 */
+async function confirmDelete() {
+  if (!projectToDelete.value) return;
+
+  deleting.value = true;
   try {
-    await projectStore.deleteProject(project.id);
+    await projectStore.deleteProject(projectToDelete.value.id);
     await loadProjects();
+    uiStore.showToast(t('project.deleteSuccess'), "success");
   } catch (error) {
     console.error("删除项目失败:", error);
-    // TODO: 显示错误提示
+    uiStore.showToast(t('project.deleteFailed'), "error");
+  } finally {
+    deleting.value = false;
+    showDeleteConfirm.value = false;
+    projectToDelete.value = null;
   }
 }
 </script>
