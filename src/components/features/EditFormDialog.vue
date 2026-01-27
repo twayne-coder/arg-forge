@@ -42,6 +42,14 @@
           >
             {{ $t('common.cancel') }}
           </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            @click="handleDuplicate"
+            :disabled="loading"
+          >
+            {{ $t('common.duplicate') }}
+          </Button>
           <Button type="submit" :disabled="loading || !isFormValid">
             {{ loading ? $t('project.saving') : $t('common.save') }}
           </Button>
@@ -128,6 +136,28 @@ async function handleSubmit() {
     emit("success");
   } catch (error) {
     console.error("更新表单失败:", error);
+    // TODO: 显示错误提示
+  } finally {
+    loading.value = false;
+  }
+}
+
+/** 处理表单克隆 */
+async function handleDuplicate() {
+  if (!projectStore.currentProject) return;
+
+  loading.value = true;
+  try {
+    await formStore.duplicateForm(
+      projectStore.currentProject.id,
+      props.form.id
+    );
+
+    // 成功后关闭对话框并通知父组件刷新
+    emit("update:open", false);
+    emit("success");
+  } catch (error) {
+    console.error("克隆表单失败:", error);
     // TODO: 显示错误提示
   } finally {
     loading.value = false;

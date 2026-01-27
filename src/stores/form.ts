@@ -62,6 +62,24 @@ export const useFormStore = defineStore("form", () => {
   }
 
   /**
+   * 克隆表单
+   */
+  async function duplicateForm(projectId: string, formId: string) {
+    const newForm = await formApi.duplicateForm(projectId, formId);
+
+    // 同步更新 projectStore.currentProject 中的表单列表
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject?.id === projectId) {
+      projectStore.currentProject.forms = [
+        ...projectStore.currentProject.forms,
+        newForm
+      ];
+    }
+
+    return newForm;
+  }
+
+  /**
    * 添加表单项
    */
   async function addFormItem(
@@ -323,6 +341,7 @@ export const useFormStore = defineStore("form", () => {
     createForm,
     updateForm,
     deleteForm,
+    duplicateForm,
     addFormItem,
     updateFormItem,
     deleteFormItem,

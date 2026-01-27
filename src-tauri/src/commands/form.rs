@@ -541,3 +541,74 @@ pub async fn update_form_field(
     })
     .map_err(|e| e.to_string())
 }
+
+/// 克隆表单（深拷贝）
+///
+/// # 参数
+/// * `project_id` - 项目 ID
+/// * `form_id` - 要克隆的表单 ID
+/// * `storage` - 存储服务实例
+///
+/// # 返回
+/// 新创建的表单对象（新的 UUID）
+///
+/// # 工作流程
+/// 1. 加载项目并查找原表单
+/// 2. 使用 JSON 序列化实现高效深拷贝
+/// 3. 重新生成表单和所有表单项的 UUID
+/// 4. 在名称后添加 "(副本)"
+/// 5. 设置 sort_order 为当前最大值 + 1
+/// 6. 保存并返回新表单
+///
+/// # 示例
+/// ```javascript
+/// const copy = await invoke('duplicate_form', {
+///   projectId: 'project-uuid',
+///   formId: 'form-uuid'
+/// });
+/// console.log(copy.name); // "原表单名 (副本)"
+/// ```
+#[tauri::command]
+pub async fn duplicate_form(
+    project_id: String,
+    form_id: String,
+    storage: State<'_, StorageService>,
+) -> Result<Form, String> {
+    with_project_mut(&storage, &project_id, |project| {
+        // 查找原表单
+        let original = project
+            .forms
+            .iter()
+            .find(|f| f.id == form_id)
+            .ok_or_else(|| crate::error::AppError::FormNotFound(form_id.clone()))?;
+
+        // 使用 JSON 序列化实现高效的深拷贝
+        let json = serde_json::to_string(&original)?;
+        let mut copy: Form = serde_json::from_str(&json)?;
+
+        // 重新生成表单 UUID
+        copy.id = uuid::Uuid::new_v4().to_string();
+        copy.name = format!("{} (副本)", original.name);
+        copy.updated_at = chrono::Utc::now().to_rfc3339();
+
+        // 重新生成所有表单项的 UUID
+        for item in &mut copy.items {
+            item.id = uuid::Uuid::new_v4().to_string();
+        }
+
+        // 设置 sort_order 为当前最大值 + 1
+        let max_sort_order = project
+            .forms
+            .iter()
+            .map(|f| f.sort_order)
+            .max()
+            .unwrap_or(-1);
+        copy.sort_order = max_sort_order + 1;
+
+        // 添加到项目
+        project.add_form(copy.clone());
+
+        Ok(copy)
+    })
+    .map_err(|e| e.to_string())
+}
