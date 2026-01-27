@@ -45,32 +45,7 @@
           </div>
         </div>
 
-        <DialogFooter class="gap-2">
-          <!-- 危险操作区 -->
-          <div class="flex gap-2 mr-auto">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              @click="handleDuplicate"
-              :disabled="loading"
-            >
-              <CopyIcon class="h-4 w-4 mr-1" />
-              {{ $t('common.duplicate') }}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              @click="showDeleteConfirm = true"
-              :disabled="loading"
-            >
-              <TrashIcon class="h-4 w-4 mr-1" />
-              {{ $t('common.delete') }}
-            </Button>
-          </div>
-
-          <!-- 标准操作区 -->
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -85,41 +60,11 @@
         </DialogFooter>
       </form>
     </DialogContent>
-
-    <!-- 删除确认对话框 -->
-    <Dialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{{ $t('project.deleteConfirm') }}</DialogTitle>
-          <DialogDescription>
-            {{ $t('project.deleteConfirmMessage', { name: project.name }) }}
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            @click="showDeleteConfirm = false"
-            :disabled="loading"
-          >
-            {{ $t('common.cancel') }}
-          </Button>
-          <Button
-            variant="destructive"
-            @click="handleDelete"
-            :disabled="loading"
-          >
-            {{ loading ? $t('project.deleting') : $t('project.deleteConfirmButton') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   </Dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import {
   Dialog,
   DialogContent,
@@ -135,11 +80,8 @@ import { Label } from "@/components/ui/label";
 import {
   CalendarIcon,
   FolderOpenIcon,
-  CopyIcon,
-  TrashIcon,
 } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
-import { useUiStore } from "@/stores/ui";
 import type { Project } from "@/types/bindings";
 
 /** 是否打开对话框 */
@@ -157,13 +99,6 @@ const emit = defineEmits<{
 /** 项目 store */
 const projectStore = useProjectStore();
 
-/** UI store */
-const uiStore = useUiStore();
-
-/** 路由 */
-const route = useRoute();
-const router = useRouter();
-
 /** 表单数据 */
 const formData = ref({
   name: "",
@@ -172,9 +107,6 @@ const formData = ref({
 
 /** 加载状态 */
 const loading = ref(false);
-
-/** 是否显示删除确认对话框 */
-const showDeleteConfirm = ref(false);
 
 /** 表单是否有效 */
 const isFormValid = computed(() => {
@@ -219,48 +151,6 @@ async function handleSubmit() {
     emit("success");
   } catch (error) {
     console.error("更新项目失败:", error);
-    // TODO: 显示错误提示
-  } finally {
-    loading.value = false;
-  }
-}
-
-/** 复制项目 */
-async function handleDuplicate() {
-  loading.value = true;
-  try {
-    await projectStore.duplicateProject(props.project.id);
-
-    // 显示成功提示
-    uiStore.showToast("项目已复制", "success");
-
-    // 成功后关闭对话框（不通知父组件，避免重新加载）
-    emit("update:open", false);
-  } catch (error) {
-    console.error("复制项目失败:", error);
-    uiStore.showToast("复制项目失败", "error");
-  } finally {
-    loading.value = false;
-  }
-}
-
-/** 删除项目 */
-async function handleDelete() {
-  loading.value = true;
-  try {
-    await projectStore.deleteProject(props.project.id);
-
-    // 成功后关闭所有对话框并通知父组件
-    showDeleteConfirm.value = false;
-    emit("update:open", false);
-    emit("success");
-
-    // 如果当前在项目详情页且删除的是当前项目，则返回首页
-    if (route.name === 'project-detail' && route.params.id === props.project.id) {
-      router.push('/');
-    }
-  } catch (error) {
-    console.error("删除项目失败:", error);
     // TODO: 显示错误提示
   } finally {
     loading.value = false;

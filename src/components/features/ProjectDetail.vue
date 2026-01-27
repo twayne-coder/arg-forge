@@ -22,10 +22,6 @@
           </div>
         </div>
       </div>
-      <Button variant="ghost" size="sm" @click="openEditProjectDialog">
-        <EditIcon class="h-4 w-4 mr-1" />
-        {{ $t('project.edit') }}
-      </Button>
     </header>
 
     <!-- 分割器布局 -->
@@ -95,14 +91,6 @@
       :form="editingForm"
       @success="handleFormSuccess"
     />
-
-    <!-- 编辑项目对话框 -->
-    <EditProjectDialog
-      v-if="project"
-      v-model:open="showEditProjectDialog"
-      :project="project"
-      @success="handleProjectUpdated"
-    />
   </div>
 </template>
 
@@ -114,14 +102,13 @@ import "splitpanes/dist/splitpanes.css";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeftIcon, EditIcon, PlusIcon, FileTextIcon } from "lucide-vue-next";
+import { ArrowLeftIcon, PlusIcon, FileTextIcon } from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import { useFormStore } from "@/stores/form";
 import FormListItem from "./FormListItem.vue";
 import FormDetailEditor from "./FormDetailEditor.vue";
 import CreateFormDialog from "./CreateFormDialog.vue";
 import EditFormDialog from "./EditFormDialog.vue";
-import EditProjectDialog from "./EditProjectDialog.vue";
 import type { Form } from "@/types/bindings";
 
 /** 路由 */
@@ -151,9 +138,6 @@ const showCreateFormDialog = ref(false);
 
 /** 是否显示编辑表单对话框 */
 const showEditFormDialog = ref(false);
-
-/** 是否显示编辑项目对话框 */
-const showEditProjectDialog = ref(false);
 
 /** 正在编辑的表单 */
 const editingForm = ref<Form | null>(null);
@@ -207,30 +191,8 @@ function openEditFormDialog() {
   }
 }
 
-/** 打开编辑项目对话框 */
-function openEditProjectDialog() {
-  showEditProjectDialog.value = true;
-}
-
 /** 表单操作成功后的处理 */
 async function handleFormSuccess() {
-  // 保存当前表单 ID
-  const savedFormId = formStore.currentForm?.id;
-
-  // 重新加载项目数据
-  await loadProject();
-
-  // 恢复表单选中状态
-  if (savedFormId) {
-    const formToRestore = forms.value.find(f => f.id === savedFormId);
-    if (formToRestore) {
-      formStore.setCurrentForm(formToRestore);
-    }
-  }
-}
-
-/** 项目更新后的处理 */
-async function handleProjectUpdated() {
   // 保存当前表单 ID
   const savedFormId = formStore.currentForm?.id;
 

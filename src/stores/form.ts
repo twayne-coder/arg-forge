@@ -5,11 +5,15 @@
 
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import * as formApi from "@/api/form";
 import { useProjectStore } from "@/stores/project";
+import { useUiStore } from "@/stores/ui";
 import type { CommandFormat, Form, FormItemFieldValue } from "@/types/bindings";
 
 export const useFormStore = defineStore("form", () => {
+  const { t } = useI18n();
+
   // 当前选中的表单
   const currentForm = ref<Form | null>(null);
 
@@ -62,6 +66,33 @@ export const useFormStore = defineStore("form", () => {
   }
 
   /**
+   * 克隆表单
+   */
+  async function duplicateForm(projectId: string, formId: string) {
+    const uiStore = useUiStore();
+
+    try {
+      const newForm = await formApi.duplicateForm(projectId, formId);
+
+      // 同步更新 projectStore.currentProject 中的表单列表
+      const projectStore = useProjectStore();
+      if (projectStore.currentProject?.id === projectId) {
+        projectStore.currentProject.forms = [
+          ...projectStore.currentProject.forms,
+          newForm
+        ];
+      }
+
+      uiStore.showToast(t('form.duplicateSuccess'), "success", 2000);
+
+      return newForm;
+    } catch (error) {
+      uiStore.showToast(t('form.duplicateFailed'), "error", 3000);
+      throw error;
+    }
+  }
+
+  /**
    * 添加表单项
    */
   async function addFormItem(
@@ -69,7 +100,7 @@ export const useFormStore = defineStore("form", () => {
     itemType?: "Command" | "Parameter"
   ) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     const newItem = await formApi.addFormItem(
@@ -115,7 +146,7 @@ export const useFormStore = defineStore("form", () => {
     value: FormItemFieldValue
   ) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     const updatedForm = await formApi.updateFormItem(
@@ -153,7 +184,7 @@ export const useFormStore = defineStore("form", () => {
    */
   async function deleteFormItem(projectId: string, itemId: string) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     await formApi.deleteFormItem(
@@ -198,7 +229,7 @@ export const useFormStore = defineStore("form", () => {
     newIndex: number
   ) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     const formId = currentForm.value.id;
@@ -235,7 +266,7 @@ export const useFormStore = defineStore("form", () => {
     options: string[]
   ) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     await formApi.updateDropdownOptions(
@@ -260,7 +291,7 @@ export const useFormStore = defineStore("form", () => {
     useDropdown: boolean
   ) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     await formApi.toggleDropdownMode(
@@ -288,7 +319,7 @@ export const useFormStore = defineStore("form", () => {
    */
   async function updateCommandFormat(projectId: string, format: CommandFormat) {
     if (!currentForm.value) {
-      throw new Error("没有当前表单");
+      throw new Error(t('form.noCurrentForm'));
     }
 
     const updatedForm = await formApi.updateCommandFormat(
@@ -323,6 +354,7 @@ export const useFormStore = defineStore("form", () => {
     createForm,
     updateForm,
     deleteForm,
+    duplicateForm,
     addFormItem,
     updateFormItem,
     deleteFormItem,

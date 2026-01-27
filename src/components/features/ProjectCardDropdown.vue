@@ -1,6 +1,6 @@
 <template>
   <DropdownMenu>
-    <DropdownMenuTrigger>
+    <DropdownMenuTrigger @click.stop>
       <Button
         variant="ghost"
         size="icon"
@@ -19,7 +19,7 @@
         {{ $t('common.duplicate') }}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem @click="handleDelete" class="text-destructive">
+      <DropdownMenuItem @click="handleDelete" class="text-red-500 hover:text-red-400 focus:text-red-400">
         <TrashIcon class="mr-2 h-4 w-4" />
         {{ $t('common.delete') }}
       </DropdownMenuItem>

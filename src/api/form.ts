@@ -57,6 +57,22 @@ export async function deleteForm(projectId: string, formId: string): Promise<voi
 }
 
 /**
+ * 克隆表单（深拷贝）
+ * @param projectId - 项目 ID
+ * @param formId - 要克隆的表单 ID
+ * @returns 新创建的表单对象
+ */
+export async function duplicateForm(
+  projectId: string,
+  formId: string
+): Promise<Form> {
+  return await invoke("duplicate_form", {
+    projectId,
+    formId,
+  });
+}
+
+/**
  * 更新表单项
  * @param projectId - 项目 ID
  * @param formId - 表单 ID

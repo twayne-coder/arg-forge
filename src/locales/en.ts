@@ -36,6 +36,7 @@ export default {
 		editDescription: "Modify project information or manage project",
 		duplicateSuccess: "Project duplicated",
 		duplicateFailed: "Failed to duplicate project",
+		deleteSuccess: "Project deleted",
 		deleteFailed: "Failed to delete project",
 		deleteConfirm: "Confirm Delete",
 		deleteConfirmMessage: 'Are you sure to delete project "{name}"? This action cannot be undone.',
@@ -69,6 +70,15 @@ export default {
 		selectHint: "Select a form to view details",
 		itemCount: "{count} items",
 		updatedAt: "Updated",
+		duplicateSuccess: "Form duplicated",
+		duplicateFailed: "Failed to duplicate form",
+		noCurrentForm: "No current form",
+		deleteSuccess: "Form deleted",
+		deleteFailed: "Failed to delete form",
+		deleteConfirm: "Confirm Delete",
+		deleteConfirmMessage: 'Are you sure to delete form "{name}"? This action cannot be undone.',
+		deleteConfirmButton: "Confirm Delete",
+		deleting: "Deleting...",
 	},
 
 	// 表单项
