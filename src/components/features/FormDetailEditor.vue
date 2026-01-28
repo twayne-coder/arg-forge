@@ -106,7 +106,7 @@
               v-for="item in form.items"
               :key="item.id"
               :item="item"
-              @open-dropdown-options="handleOpenDropdownOptions"
+              @open-settings="handleOpenSettings"
               @delete="handleDeleteItem"
             />
           </div>
@@ -146,9 +146,9 @@
       </div>
     </div>
 
-    <!-- 下拉选项对话框 -->
-    <DropdownOptionsDialog
-      v-model:open="showDropdownDialog"
+    <!-- 参数设置对话框 -->
+    <ParameterSettingsDialog
+      v-model:open="showSettingsDialog"
       :item="selectedItem"
     />
   </div>
@@ -174,7 +174,7 @@ import { useUiStore } from "@/stores/ui";
 import { useProjectStore } from "@/stores/project";
 import { useFormStore } from "@/stores/form";
 import FormItemEditor from "./FormItemEditor.vue";
-import DropdownOptionsDialog from "./DropdownOptionsDialog.vue";
+import ParameterSettingsDialog from "./ParameterSettingsDialog.vue";
 import type { CommandFormat, Form, FormItem } from "@/types/bindings";
 
 const { t } = useI18n();
@@ -236,10 +236,10 @@ const listRef = ref<HTMLElement | null>(null);
 /** Sortable 实例 */
 let sortableInstance: Sortable | null = null;
 
-/** 是否显示下拉选项对话框 */
-const showDropdownDialog = ref(false);
+/** 是否显示参数设置对话框 */
+const showSettingsDialog = ref(false);
 
-/** 选中的表单项 (用于下拉选项) */
+/** 选中的表单项 (用于参数设置) */
 const selectedItem = ref<FormItem | null>(null);
 
 /**
@@ -313,11 +313,11 @@ async function handleDeleteItem(itemId: string) {
 }
 
 /**
- * 打开下拉选项对话框
+ * 打开参数设置对话框
  */
-function handleOpenDropdownOptions(item: FormItem) {
+function handleOpenSettings(item: FormItem) {
   selectedItem.value = item;
-  showDropdownDialog.value = true;
+  showSettingsDialog.value = true;
 }
 
 /**

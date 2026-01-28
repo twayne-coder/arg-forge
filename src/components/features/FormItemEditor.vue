@@ -32,31 +32,6 @@
       class="shrink-0"
     />
 
-    <!-- 类型选择器 -->
-    <Select
-      :key="`type-${locale}`"
-      :model-value="item.item_type"
-      @update:model-value="handleUpdate('item_type', $event)"
-    >
-      <SelectTrigger class="w-[75px] h-8 text-xs sm:w-[80px] md:w-[85px] lg:w-[90px]">
-        <SelectValue :placeholder="$t('formItem.type')" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Command">
-          <div class="flex items-center gap-2">
-            <TerminalIcon class="h-3.5 w-3.5 text-emerald-600" />
-            <span>{{ $t('formItem.cmd') }}</span>
-          </div>
-        </SelectItem>
-        <SelectItem value="Parameter">
-          <div class="flex items-center gap-2">
-            <SlidersIcon class="h-3.5 w-3.5" />
-            <span>{{ $t('formItem.param') }}</span>
-          </div>
-        </SelectItem>
-      </SelectContent>
-    </Select>
-
     <!-- Command 类型：仅显示内容输入框 -->
     <template v-if="item.item_type === 'Command'">
       <div class="flex-1 min-w-0">
@@ -139,31 +114,15 @@
       </div>
     </template>
 
-    <!-- 下拉选项按钮 -->
+    <!-- 设置按钮 -->
     <Button
-      v-if="item.item_type === 'Parameter' && item.use_dropdown"
       variant="ghost"
       size="sm"
-      @click="$emit('open-dropdown-options', item)"
+      @click="$emit('open-settings', item)"
       class="shrink-0 h-8 w-8 p-0"
-      :title="$t('formItem.manageDropdown')"
+      :title="$t('formItem.settings')"
     >
       <SettingsIcon class="h-3.5 w-3.5" />
-    </Button>
-
-    <!-- 下拉模式切换按钮（仅参数项显示） -->
-    <Button
-      v-if="item.item_type === 'Parameter'"
-      variant="ghost"
-      size="sm"
-      @click="toggleDropdown"
-      :class="[
-        'shrink-0 h-8 w-8 p-0',
-        item.use_dropdown && 'bg-primary/10 text-primary hover:bg-primary/20'
-      ]"
-      :title="$t('formItem.toggleDropdown')"
-    >
-      <ListIcon class="h-3.5 w-3.5" />
     </Button>
 
     <!-- 删除按钮 -->
@@ -192,11 +151,8 @@ import {
 } from "@/components/ui/select";
 import {
   GripVerticalIcon,
-  ListIcon,
   SettingsIcon,
   TrashIcon,
-  TerminalIcon,
-  SlidersIcon,
 } from "lucide-vue-next";
 import { useFormItems } from "@/composables/useFormItems";
 import type { FormItem, FormItemFieldValue } from "@/types/bindings";
@@ -209,12 +165,12 @@ const props = defineProps<{
 
 /** 定义事件 */
 defineEmits<{
-  "open-dropdown-options": [item: FormItem];
+  "open-settings": [item: FormItem];
   delete: [itemId: string];
 }>();
 
 /** 表单项操作 */
-const { updateFormItem, toggleDropdownMode } = useFormItems();
+const { updateFormItem } = useFormItems();
 
 /** 获取当前语言（用于强制刷新 Select 组件） */
 const { locale } = useI18n();
@@ -251,12 +207,5 @@ async function handleUpdate(field: string, value: unknown) {
   console.log("[FormItemEditor] 调用 updateFormItem:", convertedValue);
   await updateFormItem(props.item.id, field, convertedValue);
   console.log("[FormItemEditor] updateFormItem 完成");
-}
-
-/**
- * 切换下拉模式
- */
-async function toggleDropdown() {
-  await toggleDropdownMode(props.item.id, !props.item.use_dropdown);
 }
 </script>
