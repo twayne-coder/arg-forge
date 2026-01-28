@@ -130,9 +130,9 @@ export default {
 
 	// 参数风格
 	paramStyle: {
-		keyValue: "--key value",
-		equalValue: "key=value",
-		valueOnly: "value only",
+		keyValue: "--k v",
+		equalValue: "k=v",
+		valueOnly: "val",
 	},
 
 	// 命令预览
