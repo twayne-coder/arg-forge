@@ -10,3 +10,12 @@ app.use(createPinia());
 app.use(router);
 app.use(i18n);
 app.mount("#app");
+
+// 全局禁用右键菜单（兜底方案）
+document.addEventListener(
+  "contextmenu",
+  (e) => {
+    e.preventDefault();
+  },
+  { capture: true },
+);
