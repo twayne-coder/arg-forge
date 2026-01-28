@@ -65,7 +65,7 @@
         :model-value="item.param_style"
         @update:model-value="handleUpdate('param_style', $event)"
       >
-        <SelectTrigger class="w-[110px] h-8 text-xs sm:w-[120px] md:w-[130px] lg:w-[140px]">
+        <SelectTrigger class="w-[70px] h-8 text-xs sm:w-[80px] md:w-[90px] lg:w-[100px]">
           <SelectValue :placeholder="$t('formItem.paramStyle')" />
         </SelectTrigger>
         <SelectContent>
