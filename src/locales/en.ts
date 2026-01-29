@@ -107,6 +107,14 @@ export default {
 		unnamed: "(unnamed)",
 		cmd: "Cmd",
 		param: "Param",
+		settings: "Parameter Settings",
+	},
+
+	// 参数设置
+	settings: {
+		title: "Parameter Settings",
+		description: "Configure parameter type and dropdown options",
+		dropdownMode: "Dropdown Mode",
 	},
 
 	// 下拉选项
@@ -122,9 +130,9 @@ export default {
 
 	// 参数风格
 	paramStyle: {
-		keyValue: "--key value",
-		equalValue: "key=value",
-		valueOnly: "value only",
+		keyValue: "--k v",
+		equalValue: "k=v",
+		valueOnly: "val",
 	},
 
 	// 命令预览

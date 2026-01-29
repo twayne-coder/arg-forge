@@ -107,6 +107,14 @@ export default {
 		unnamed: "(未命名)",
 		cmd: "命令",
 		param: "参数",
+		settings: "参数设置",
+	},
+
+	// 参数设置
+	settings: {
+		title: "参数设置",
+		description: "配置参数类型和下拉选项",
+		dropdownMode: "下拉模式",
 	},
 
 	// 下拉选项
@@ -122,8 +130,8 @@ export default {
 
 	// 参数风格
 	paramStyle: {
-		keyValue: "--key value",
-		equalValue: "key=value",
+		keyValue: "--k v",
+		equalValue: "k=v",
 		valueOnly: "仅值",
 	},
 

@@ -52,6 +52,18 @@ pub fn run() {
             // 获取主窗口
             let main_window = app.get_webview_window("main").unwrap();
 
+            // 注入脚本禁用原生右键菜单
+            let script = r#"
+                window.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                }, { capture: true });
+            "#;
+            if let Err(e) = main_window.eval(script) {
+                tracing::error!("注入禁用右键菜单脚本失败: {}", e);
+            } else {
+                tracing::info!("✅ 已注入禁用右键菜单脚本");
+            }
+
             // 延迟显示窗口，确保页面已加载
             let window_clone = main_window.clone();
             std::thread::spawn(move || {
