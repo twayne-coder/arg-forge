@@ -142,7 +142,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import {
   Dialog,
   DialogContent,
@@ -171,9 +170,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
-
-/** 国际化 */
-const { t } = useI18n();
 
 /** 表单项操作 */
 const { updateFormItem, updateDropdownOptions } = useFormItems();
